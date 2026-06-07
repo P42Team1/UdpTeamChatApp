@@ -1,4 +1,4 @@
-﻿namespace CharLibrary
+﻿namespace ChatLibrary
 {
     public class User
     {
