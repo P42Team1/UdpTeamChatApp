@@ -80,14 +80,41 @@ namespace UdpTeamChatApp
             var responsePacket = Packet.FromBytes(result.Buffer);
             var data = responsePacket.GetPayload<AuthResponsePayload>();
 
-            if(data.Success)
+            if (data.Success)
             {
-                MessageBox.Show("Registration successful");
+                MessageBox.Show(data.Message);
                 panelRegistrate.Visible = false;
-                panelServer.Visible = true;
+                panelLogin.Visible = true;
             }
             else
                 MessageBox.Show($"Registration failed: {data.Message}");
+        }
+
+        private async void buttonLogin_Click(object sender, EventArgs e)
+        {
+            //Data from login page
+            var payload = new LoginPayload
+            {
+                Username = textBoxLogin_Log.Text,
+                Password = textBoxPassword_Log.Text,
+            };
+            //Create packet and send to server
+            var packet = Packet.Create(PacketType.Login, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+            //Wait for response
+            var result = await _udpClient.ReceiveAsync();
+            var responsePacket = Packet.FromBytes(result.Buffer);
+            var data = responsePacket.GetPayload<AuthResponsePayload>();
+
+            if (data.Success)
+            {
+                MessageBox.Show(data.Message);
+                panelLogin.Visible = false;
+                panelServer.Visible = true;
+            }
+            else
+                MessageBox.Show($"Login failed: {data.Message}");
         }
     }
 }

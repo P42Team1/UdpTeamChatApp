@@ -19,6 +19,11 @@ namespace CharLibrary
             Password = password;
             Email = email;
         }
+        public User(string username, string password)
+        {
+            Username = username;
+            Password = password;
+        }
         public UserStatus Status { get; set; }
         public DateTime OfflineFromTime { get; set; }
 

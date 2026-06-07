@@ -46,6 +46,35 @@ namespace UdpTeamChatAppServer
             await Send(client, response);
 
         }
+        public async Task HandleLogin(Packet packet, IPEndPoint client)
+        {
+            var payload = packet.GetPayload<LoginPayload>();
+            //--------------------Checking if user is already in use--------------------
+            //bool exists = await _db.Users
+            //    .AnyAsync(u => u.Username == payload.Username || u.Email == payload.Email);
+            //if(exists) {
+            //    var err = new AuthResponsePayload
+            //    {
+            //        Success = false,
+            //        Message = "Username or email already in use"
+            //    };
+            //    await Send(from, err);
+            //    return;
+
+            //}
+            var user = new User(payload.Username, payload.Password);
+            //await _db.Users.AddAsync(user);
+
+            var response = new AuthResponsePayload
+            {
+                Success = true,
+                Message = "Log In successful",
+                UserId = user.Id,
+                Username = user.Username
+            };
+            await Send(client, response);
+
+        }
         private async Task Send<T>(IPEndPoint to, T data)
         {
             var packet = Packet.Create(PacketType.AuthResponse, data);

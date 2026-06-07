@@ -120,7 +120,7 @@
             buttonLogin.TabIndex = 0;
             buttonLogin.Text = "Log in";
             buttonLogin.UseVisualStyleBackColor = true;
-            buttonLogin.Click += button2_Click;
+            buttonLogin.Click += buttonLogin_Click;
             // 
             // label2
             // 
@@ -277,9 +277,9 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1035, 576);
+            Controls.Add(panelLogin);
             Controls.Add(panelRegistrate);
             Controls.Add(panelServer);
-            Controls.Add(panelLogin);
             Margin = new Padding(3, 2, 3, 2);
             Name = "Form1";
             Text = "Form1";
