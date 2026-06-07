@@ -1,4 +1,6 @@
-﻿namespace CharLibrary
+﻿using System.ComponentModel;
+
+namespace CharLibrary
 {
     public class User
     {
@@ -6,6 +8,17 @@
 
         public string IPAddress { get; set; }
         public int Port { get; set; }
+
+        public string Username { get; set; }
+        public string Password { get; set; }
+        public string Email { get; set; }
+
+        public User(string username, string password, string email) 
+        {
+            Username = username;
+            Password = password;
+            Email = email;
+        }
         public UserStatus Status { get; set; }
         public DateTime OfflineFromTime { get; set; }
 

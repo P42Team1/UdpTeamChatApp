@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using CharLibrary;
+using Microsoft.VisualBasic.Logging;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace UdpTeamChatApp
 {
@@ -10,11 +13,13 @@ namespace UdpTeamChatApp
         {
             InitializeComponent();
         }
+        UdpClient _udpClient = new UdpClient();
+        IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 10000);
 
         private void button1_Click(object sender, EventArgs e)
         {
             string message = textBox3.Text;
-            if (string.IsNullOrEmpty(message) )
+            if (string.IsNullOrEmpty(message))
             {
                 MessageBox.Show("Enter message first");
                 return;
@@ -35,6 +40,54 @@ namespace UdpTeamChatApp
                 }
 
             }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            panelLogin.Visible = true;
+            panelRegistrate.Visible = false;
+            panelServer.Visible = false;
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            panelLogin.Visible = false;
+            panelServer.Visible = true;
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+            panelLogin.Visible = false;
+            panelRegistrate.Visible = true;
+        }
+
+        private async void buttonRegistrate_Click(object sender, EventArgs e)
+        {
+            //Data from register page
+            var payload = new RegisterPayload
+            {
+                Username = textBoxLogin_Reg.Text,
+                Password = textBoxPassword_Reg.Text,
+                Email = textBoxEmail_Reg.Text
+            };
+            //Create packet and send to server
+            var packet = Packet.Create(PacketType.Register, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+            //Wait for response
+            var result = await _udpClient.ReceiveAsync();
+            var responsePacket = Packet.FromBytes(result.Buffer);
+            var data = responsePacket.GetPayload<AuthResponsePayload>();
+
+            if(data.Success)
+            {
+                MessageBox.Show("Registration successful");
+                panelRegistrate.Visible = false;
+                panelServer.Visible = true;
+            }
+            else
+                MessageBox.Show($"Registration failed: {data.Message}");
         }
     }
 }
