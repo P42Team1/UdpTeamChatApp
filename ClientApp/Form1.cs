@@ -1,14 +1,18 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using UdpTeamChatApp.Data;
 
 namespace UdpTeamChatApp
 {
     public partial class Form1 : Form
     {
+        private Context context; 
         public Form1()
         {
             InitializeComponent();
+            ContextFactory contextFactory = new ContextFactory();
+            context = contextFactory.CreateDbContext(args);
         }
 
         private void button1_Click(object sender, EventArgs e)
