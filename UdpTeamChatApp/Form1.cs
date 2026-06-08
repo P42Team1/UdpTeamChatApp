@@ -86,11 +86,59 @@ namespace UdpTeamChatApp
                 textBox3.Enabled = false;
                 MessageBox.Show($"Connected to port {localPort}");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-            
+
+        }
+
+        private void Disconnect()
+        {
+            if (client == null) return;
+            try
+            {
+                ChatLibrary.Message msgLog = new ChatLibrary.Message()
+                {
+                    Id = 0,
+                    AuthorId = localPort,
+                    Text = "/disconnect",
+                    Time = DateTime.Now,
+                    ChatId = 1,
+                    Status = StatusDelivered.NotReceived,
+                };
+
+                string jsonMessage = JsonConvert.SerializeObject(msgLog);
+
+                byte[] buff = Encoding.UTF8.GetBytes(jsonMessage);
+                IPAddress serverAddress = IPAddress.Parse(textBox1.Text);
+                int serverPort = int.Parse(textBox2.Text);
+                client.Send(buff, buff.Length, new IPEndPoint(serverAddress, serverPort));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                client?.Close();
+                client = null;
+
+                button1.Enabled = false;
+                button2.Enabled = true;
+                textBox3.Enabled = true;
+
+                MessageBox.Show("Disconnected");
+            }
+        }
+        private void button3_Click(object sender, EventArgs e)
+        {
+            Disconnect();
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Disconnect();
         }
     }
 }
