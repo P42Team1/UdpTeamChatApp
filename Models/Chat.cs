@@ -1,4 +1,4 @@
-namespace Models
+namespace UdpTeamChatApp.Models
 {
     public class Chat
     {

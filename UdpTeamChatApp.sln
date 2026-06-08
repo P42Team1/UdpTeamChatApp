@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatApp", "UdpTeamChatApp\UdpTeamChatApp.csproj", "{DF6D3BB7-E7A2-420D-BEC3-59167D105A4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatApp", "ClientApp\UdpTeamChatApp.csproj", "{DF6D3BB7-E7A2-420D-BEC3-59167D105A4E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CharLibrary", "Models\CharLibrary.csproj", "{6401A4DB-6C4D-48C5-BF39-5944ED14A526}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatAppServer", "UdpTeamChatAppServer\UdpTeamChatAppServer.csproj", "{A801E068-AFAC-4FB1-9B91-7583EA129EB9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatAppServer", "ServerApp\UdpTeamChatAppServer.csproj", "{A801E068-AFAC-4FB1-9B91-7583EA129EB9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
