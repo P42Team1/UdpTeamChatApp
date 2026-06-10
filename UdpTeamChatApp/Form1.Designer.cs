@@ -229,6 +229,7 @@
             button4.TabIndex = 10;
             button4.Text = "Send";
             button4.UseVisualStyleBackColor = true;
+            button4.Click += button4_Click;
             // 
             // textBox6
             // 

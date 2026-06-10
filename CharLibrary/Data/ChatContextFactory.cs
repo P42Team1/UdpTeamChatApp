@@ -8,7 +8,7 @@ namespace UdpTeamChatApp.Data
     {
         public ChatContext CreateDbContext(string[] args)
         {
-            DbContextOptionsBuilder<ChatContext> optionsBuilder = new DbContextOptionsBuilder<MailingContext>();
+            DbContextOptionsBuilder<ChatContext> optionsBuilder = new DbContextOptionsBuilder<ChatContext>();
             IConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
             //configurationBuilder.AddJsonFile("appSettings.json");
             IConfigurationRoot configurationRoot = configurationBuilder.Build();

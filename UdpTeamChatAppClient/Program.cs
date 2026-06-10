@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Text;
 using ChatLibrary;
+using ChatLibrary.Models;
 
 List<User> onlineUsers = new List<User>(); // тимчасова заміна БД поки не підключимо її
 
@@ -55,25 +56,46 @@ try
                 sender.Port = remoteEP.Port;
             }
 
-            foreach (var user in onlineUsers)
+            if (incomingMsg.ChatId == 1)
             {
-                if (user.Id != incomingMsg.AuthorId)
+                Console.WriteLine($"GENERAL from User {incomingMsg.AuthorId}");
+                foreach (var user in onlineUsers)
                 {
-                    try
+                    if (user.Id != incomingMsg.AuthorId)
                     {
-                        IPAddress targetIP = IPAddress.Parse(user.IPAddress);
-                        int targetPort = user.Port;
-                        IPEndPoint targetEP = new IPEndPoint(targetIP, targetPort);
-                        string sendMessage = $"[From User {incomingMsg.AuthorId}]: {incomingMsg.Text}";
-                        buff = Encoding.UTF8.GetBytes(receivedJson);
-                        udpServer.Send(buff, buff.Length, targetEP);
-                        Console.WriteLine($"Forwarded to User {user.Id} on port {targetPort}");
+                        try
+                        {
+                            IPAddress targetIP = IPAddress.Parse(user.IPAddress);
+                            int targetPort = user.Port;
+                            IPEndPoint targetEP = new IPEndPoint(targetIP, targetPort);
+                            buff = Encoding.UTF8.GetBytes(receivedJson);
+                            udpServer.Send(buff, buff.Length, targetEP);
+                            Console.WriteLine($"Forwarded to User {user.Id} on port {targetPort}");
+                        }
+                        catch (Exception ex) { Console.WriteLine(ex.Message); }
+                        
                     }
-                    catch (Exception ex) { Console.WriteLine(ex.Message); }
                 }
-
+                Console.WriteLine($"Sent to {onlineUsers.Count - 1} users");
             }
-            Console.WriteLine($"Sent to {onlineUsers.Count - 1} users");
+            else
+            {
+                int targetUserId = incomingMsg.ChatId;
+                Console.WriteLine($"[PRIVATE] From User {incomingMsg.AuthorId} to User {targetUserId}");
+                var targetUser = onlineUsers.FirstOrDefault(user => user.Id == targetUserId);
+                if (targetUser != null)
+                {
+                    IPAddress targetUserIp = IPAddress.Parse(targetUser.IPAddress);
+                    int targetUserPort = targetUser.Port;
+                    IPEndPoint targetUserEP = new IPEndPoint(targetUserIp, targetUserPort);
+                    buff = Encoding.UTF8.GetBytes(receivedJson);
+                    udpServer.Send(buff, buff.Length, targetUserEP);
+                    Console.WriteLine($"Forwarded to User {targetUser.Id} on port {targetUserPort}");
+                }
+            }
+
+            
+            
         }
         catch (Exception ex) { Console.WriteLine(ex.Message); }
         
