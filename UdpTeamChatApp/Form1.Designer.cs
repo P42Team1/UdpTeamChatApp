@@ -48,13 +48,15 @@
             label6 = new Label();
             button4 = new Button();
             textBox6 = new TextBox();
+            comboBox1 = new ComboBox();
+            label7 = new Label();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             SuspendLayout();
             // 
             // button1
             // 
-            button1.Location = new Point(440, 91);
+            button1.Location = new Point(457, 110);
             button1.Name = "button1";
             button1.Size = new Size(94, 29);
             button1.TabIndex = 0;
@@ -157,6 +159,8 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(label7);
+            groupBox1.Controls.Add(comboBox1);
             groupBox1.Controls.Add(textBox5);
             groupBox1.Controls.Add(textBox4);
             groupBox1.Controls.Add(textBox1);
@@ -170,7 +174,7 @@
             groupBox1.Size = new Size(677, 484);
             groupBox1.TabIndex = 12;
             groupBox1.TabStop = false;
-            groupBox1.Text = "Send to everyone";
+            groupBox1.Text = "Send to chat";
             // 
             // groupBox2
             // 
@@ -238,6 +242,23 @@
             textBox6.Size = new Size(125, 27);
             textBox6.TabIndex = 13;
             // 
+            // comboBox1
+            // 
+            comboBox1.FormattingEnabled = true;
+            comboBox1.Location = new Point(412, 62);
+            comboBox1.Name = "comboBox1";
+            comboBox1.Size = new Size(151, 28);
+            comboBox1.TabIndex = 10;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(412, 39);
+            label7.Name = "label7";
+            label7.Size = new Size(39, 20);
+            label7.TabIndex = 11;
+            label7.Text = "Chat";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -282,5 +303,7 @@
         private Label label6;
         private Button button4;
         private TextBox textBox6;
+        private Label label7;
+        private ComboBox comboBox1;
     }
 }
