@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CharLibrary;
@@ -33,9 +34,10 @@ namespace UdpTeamChatAppServer
             //    return;
 
             //}
-            var user = new User(payload.Username, payload.Password, payload.Email);
+            string hashedPassword = DataEncryptor.HashPassword(payload.Password);
+            var user = new User(payload.Username, hashedPassword, payload.Email);
             //await _db.Users.AddAsync(user);
-
+            Console.WriteLine($"Registered new user: {user.Username} with email: {user.Email}. Hashed password: {hashedPassword}");
             var response = new AuthResponsePayload
             {
                 Success = true,

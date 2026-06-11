@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -12,6 +13,21 @@ namespace CharLibrary
         public string Username { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
+    }
+    public class DataEncryptor
+    {
+        public static string HashPassword(string password)
+        {
+            var bytes = Encoding.UTF8.GetBytes(password);
+            var hash = SHA256.HashData(bytes);
+            return Convert.ToHexString(hash);
+        }
+
+        public static bool VerifyPassword(string password, string hash)
+        {
+            var newHash = HashPassword(password);
+            return newHash == hash;
+        }
     }
     public class LoginPayload
     {
