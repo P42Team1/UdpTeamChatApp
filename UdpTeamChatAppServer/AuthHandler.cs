@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using CharLibrary;
+using ChatLibrary;
 
 namespace UdpTeamChatAppServer
 {
@@ -21,22 +21,8 @@ namespace UdpTeamChatAppServer
         public async Task HandleRegister(Packet packet, IPEndPoint client)
         {
             var payload = packet.GetPayload<RegisterPayload>();
-            //--------------------Checking if user is already in use--------------------
-            //bool exists = await _db.Users
-            //    .AnyAsync(u => u.Username == payload.Username || u.Email == payload.Email);
-            //if(exists) {
-            //    var err = new AuthResponsePayload
-            //    {
-            //        Success = false,
-            //        Message = "Username or email already in use"
-            //    };
-            //    await Send(from, err);
-            //    return;
-
-            //}
             string hashedPassword = DataEncryptor.HashPassword(payload.Password);
             var user = new User(payload.Username, hashedPassword, payload.Email);
-            //await _db.Users.AddAsync(user);
             Console.WriteLine($"Registered new user: {user.Username} with email: {user.Email}. Hashed password: {hashedPassword}");
             var response = new AuthResponsePayload
             {
@@ -51,21 +37,7 @@ namespace UdpTeamChatAppServer
         public async Task HandleLogin(Packet packet, IPEndPoint client)
         {
             var payload = packet.GetPayload<LoginPayload>();
-            //--------------------Checking if user is already in use--------------------
-            //bool exists = await _db.Users
-            //    .AnyAsync(u => u.Username == payload.Username || u.Email == payload.Email);
-            //if(exists) {
-            //    var err = new AuthResponsePayload
-            //    {
-            //        Success = false,
-            //        Message = "Username or email already in use"
-            //    };
-            //    await Send(from, err);
-            //    return;
-
-            //}
             var user = new User(payload.Username, payload.Password);
-            //await _db.Users.AddAsync(user);
 
             var response = new AuthResponsePayload
             {

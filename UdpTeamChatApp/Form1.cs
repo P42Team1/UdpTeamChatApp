@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using CharLibrary;
+using ChatLibrary;
 using Microsoft.VisualBasic.Logging;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
