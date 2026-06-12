@@ -87,7 +87,7 @@ namespace UdpTeamChatApp
         {
             Message msgLog = new Message()
             {
-                Id = 0, // тимчасові заглушки до підключення БД
+                Id = 0, // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ
                 AuthorId = localPort,
                 Text = textBox4.Text,
                 Time = DateTime.Now,
