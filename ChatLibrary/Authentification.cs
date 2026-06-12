@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace CharLibrary
+namespace ChatLibrary
 {
     public class RegisterPayload
     {

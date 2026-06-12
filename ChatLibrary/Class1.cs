@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace CharLibrary
+namespace ChatLibrary
 {
     public class User
     {
