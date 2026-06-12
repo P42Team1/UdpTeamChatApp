@@ -54,7 +54,7 @@
             groupBox2.SuspendLayout();
             SuspendLayout();
             // 
-            // button1
+            // panelLogin
             // 
             button1.Location = new Point(457, 110);
             button1.Name = "button1";
@@ -64,7 +64,7 @@
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
-            // textBox1
+            // labelRegistrateLink
             // 
             textBox1.Location = new Point(43, 62);
             textBox1.Name = "textBox1";
@@ -78,7 +78,7 @@
             textBox3.Size = new Size(125, 27);
             textBox3.TabIndex = 2;
             // 
-            // label1
+            // label4
             // 
             label1.AutoSize = true;
             label1.Location = new Point(43, 39);
@@ -92,7 +92,7 @@
             label2.AutoSize = true;
             label2.Location = new Point(520, 14);
             label2.Name = "label2";
-            label2.Size = new Size(35, 20);
+            label2.Size = new Size(29, 15);
             label2.TabIndex = 4;
             label2.Text = "Port";
             // 
@@ -103,12 +103,20 @@
             textBox4.Size = new Size(344, 27);
             textBox4.TabIndex = 5;
             // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(22, 44);
+            textBox1.Margin = new Padding(3, 2, 3, 2);
+            textBox1.Name = "textBox1";
+            textBox1.Size = new Size(172, 23);
+            textBox1.TabIndex = 1;
+            // 
             // label3
             // 
             label3.AutoSize = true;
             label3.Location = new Point(43, 89);
             label3.Name = "label3";
-            label3.Size = new Size(67, 20);
+            label3.Size = new Size(53, 15);
             label3.TabIndex = 6;
             label3.Text = "Message";
             // 
@@ -263,7 +271,7 @@
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1436, 578);
             Controls.Add(groupBox2);
@@ -280,7 +288,6 @@
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
