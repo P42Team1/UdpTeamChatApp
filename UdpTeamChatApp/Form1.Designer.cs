@@ -50,11 +50,13 @@
             label6 = new Label();
             button4 = new Button();
             textBox6 = new TextBox();
+            panel1 = new Panel();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
+            panel1.SuspendLayout();
             SuspendLayout();
             // 
-            // panelLogin
+            // button1
             // 
             button1.Location = new Point(457, 110);
             button1.Name = "button1";
@@ -64,33 +66,34 @@
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
-            // labelRegistrateLink
+            // textBox1
             // 
             textBox1.Location = new Point(43, 62);
+            textBox1.Margin = new Padding(3, 2, 3, 2);
             textBox1.Name = "textBox1";
-            textBox1.Size = new Size(196, 27);
+            textBox1.Size = new Size(172, 23);
             textBox1.TabIndex = 1;
             // 
             // textBox3
             // 
-            textBox3.Location = new Point(520, 37);
+            textBox3.Location = new Point(521, 54);
             textBox3.Name = "textBox3";
-            textBox3.Size = new Size(125, 27);
+            textBox3.Size = new Size(125, 23);
             textBox3.TabIndex = 2;
             // 
-            // label4
+            // label1
             // 
             label1.AutoSize = true;
             label1.Location = new Point(43, 39);
             label1.Name = "label1";
-            label1.Size = new Size(114, 20);
+            label1.Size = new Size(90, 15);
             label1.TabIndex = 3;
             label1.Text = "ServerIPAddress";
             // 
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(520, 14);
+            label2.Location = new Point(521, 31);
             label2.Name = "label2";
             label2.Size = new Size(29, 15);
             label2.TabIndex = 4;
@@ -100,16 +103,8 @@
             // 
             textBox4.Location = new Point(43, 112);
             textBox4.Name = "textBox4";
-            textBox4.Size = new Size(344, 27);
+            textBox4.Size = new Size(344, 23);
             textBox4.TabIndex = 5;
-            // 
-            // textBox1
-            // 
-            textBox1.Location = new Point(22, 44);
-            textBox1.Margin = new Padding(3, 2, 3, 2);
-            textBox1.Name = "textBox1";
-            textBox1.Size = new Size(172, 23);
-            textBox1.TabIndex = 1;
             // 
             // label3
             // 
@@ -133,7 +128,7 @@
             // 
             textBox2.Location = new Point(262, 62);
             textBox2.Name = "textBox2";
-            textBox2.Size = new Size(125, 27);
+            textBox2.Size = new Size(125, 23);
             textBox2.TabIndex = 8;
             // 
             // label4
@@ -141,13 +136,13 @@
             label4.AutoSize = true;
             label4.Location = new Point(262, 39);
             label4.Name = "label4";
-            label4.Size = new Size(76, 20);
+            label4.Size = new Size(61, 15);
             label4.TabIndex = 9;
             label4.Text = "ServerPort";
             // 
             // button2
             // 
-            button2.Location = new Point(673, 36);
+            button2.Location = new Point(674, 53);
             button2.Name = "button2";
             button2.Size = new Size(94, 29);
             button2.TabIndex = 10;
@@ -157,7 +152,7 @@
             // 
             // button3
             // 
-            button3.Location = new Point(799, 36);
+            button3.Location = new Point(800, 53);
             button3.Name = "button3";
             button3.Size = new Size(94, 29);
             button3.TabIndex = 11;
@@ -177,7 +172,7 @@
             groupBox1.Controls.Add(button1);
             groupBox1.Controls.Add(textBox2);
             groupBox1.Controls.Add(label3);
-            groupBox1.Location = new Point(21, 82);
+            groupBox1.Location = new Point(22, 99);
             groupBox1.Name = "groupBox1";
             groupBox1.Size = new Size(677, 484);
             groupBox1.TabIndex = 12;
@@ -189,7 +184,7 @@
             label7.AutoSize = true;
             label7.Location = new Point(412, 39);
             label7.Name = "label7";
-            label7.Size = new Size(39, 20);
+            label7.Size = new Size(32, 15);
             label7.TabIndex = 11;
             label7.Text = "Chat";
             // 
@@ -199,7 +194,7 @@
             comboBox1.Items.AddRange(new object[] { "1", "2" });
             comboBox1.Location = new Point(412, 62);
             comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(151, 28);
+            comboBox1.Size = new Size(151, 23);
             comboBox1.TabIndex = 10;
             comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
@@ -211,7 +206,7 @@
             groupBox2.Controls.Add(label6);
             groupBox2.Controls.Add(button4);
             groupBox2.Controls.Add(textBox6);
-            groupBox2.Location = new Point(728, 82);
+            groupBox2.Location = new Point(729, 99);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(673, 484);
             groupBox2.TabIndex = 13;
@@ -231,7 +226,7 @@
             // 
             textBox7.Location = new Point(186, 62);
             textBox7.Name = "textBox7";
-            textBox7.Size = new Size(445, 27);
+            textBox7.Size = new Size(445, 23);
             textBox7.TabIndex = 11;
             // 
             // label5
@@ -239,7 +234,7 @@
             label5.AutoSize = true;
             label5.Location = new Point(39, 39);
             label5.Name = "label5";
-            label5.Size = new Size(68, 20);
+            label5.Size = new Size(55, 15);
             label5.TabIndex = 14;
             label5.Text = "User Port";
             // 
@@ -248,7 +243,7 @@
             label6.AutoSize = true;
             label6.Location = new Point(186, 39);
             label6.Name = "label6";
-            label6.Size = new Size(67, 20);
+            label6.Size = new Size(53, 15);
             label6.TabIndex = 12;
             label6.Text = "Message";
             // 
@@ -266,20 +261,29 @@
             // 
             textBox6.Location = new Point(39, 62);
             textBox6.Name = "textBox6";
-            textBox6.Size = new Size(125, 27);
+            textBox6.Size = new Size(125, 23);
             textBox6.TabIndex = 13;
+            // 
+            // panel1
+            // 
+            panel1.Controls.Add(label2);
+            panel1.Controls.Add(groupBox2);
+            panel1.Controls.Add(textBox3);
+            panel1.Controls.Add(groupBox1);
+            panel1.Controls.Add(button2);
+            panel1.Controls.Add(button3);
+            panel1.Dock = DockStyle.Fill;
+            panel1.Location = new Point(0, 0);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(1436, 723);
+            panel1.TabIndex = 14;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1436, 578);
-            Controls.Add(groupBox2);
-            Controls.Add(groupBox1);
-            Controls.Add(button3);
-            Controls.Add(button2);
-            Controls.Add(label2);
-            Controls.Add(textBox3);
+            ClientSize = new Size(1436, 723);
+            Controls.Add(panel1);
             Name = "Form1";
             Text = "Form1";
             FormClosing += Form1_FormClosing;
@@ -287,6 +291,8 @@
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
+            panel1.ResumeLayout(false);
+            panel1.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -314,5 +320,6 @@
         private TextBox textBox6;
         private Label label7;
         private ComboBox comboBox1;
+        private Panel panel1;
     }
 }
