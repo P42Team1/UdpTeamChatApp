@@ -13,6 +13,8 @@ namespace UdpTeamChatApp
 
         private UdpClient client;
         public int localPort;
+        public int activeChat = 1;
+        public Dictionary<int, string> chats = new Dictionary<int, string>();
 
         public Form1()
         {
@@ -21,6 +23,7 @@ namespace UdpTeamChatApp
             textBox2.Text = "10000";
             button1.Enabled = false;
             button4.Enabled = false;
+            comboBox1.SelectedIndex = 0;
         }
 
         private void StartListening()
@@ -34,10 +37,26 @@ namespace UdpTeamChatApp
                     string receivedMessageJson = Encoding.UTF8.GetString(buff);
                     Message incomingMsg = JsonConvert.DeserializeObject<Message>(receivedMessageJson);
                     string displayTemplate;
-                    if (incomingMsg.ChatId == 1)
+                    if (incomingMsg.ChatId >= 1 && incomingMsg.ChatId <= 100)
                     {
-                        displayTemplate = $"[GENERAL] User {incomingMsg.AuthorId}: {incomingMsg.Text}";
-                        TextUpdate(textBox5, displayTemplate);
+                        displayTemplate = $"[GENERAL CHAT_{incomingMsg.ChatId}] User {incomingMsg.AuthorId}: {incomingMsg.Text}\r\n";
+
+                        textBox5.BeginInvoke(new Action(() =>
+                        {
+                            if (!chats.ContainsKey(incomingMsg.ChatId))
+                            {
+                                chats[incomingMsg.ChatId] = "";
+                            }
+
+                            chats[incomingMsg.ChatId] += displayTemplate;
+
+                            if (incomingMsg.ChatId == activeChat)
+                            {
+                                textBox5.AppendText(displayTemplate);
+                            }
+                        }));
+
+                        
                     }
                     else
                     {
@@ -45,53 +64,58 @@ namespace UdpTeamChatApp
                         TextUpdate(textBox8, displayTemplate);
                     }
                 }
-                catch(SocketException ex)
+                catch (SocketException ex)
                 {
                     break;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message);
                 }
-                
-                        
+
+
             }
 
         }
 
         private void TextUpdate(TextBox targetTextBox, string text)
         {
-            targetTextBox.BeginInvoke(new Action(() => targetTextBox.AppendText(text + Environment.NewLine)) );
+            targetTextBox.BeginInvoke(new Action(() => targetTextBox.AppendText(text + Environment.NewLine)));
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-
             Message msgLog = new Message()
             {
                 Id = 0, // тимчасові заглушки до підключення БД
                 AuthorId = localPort,
                 Text = textBox4.Text,
                 Time = DateTime.Now,
-                ChatId = 1,
+                ChatId = comboBox1.SelectedIndex + 1,
                 Status = MessageStatus.NotReceived,
             };
 
             SendToServer(msgLog);
-            TextUpdate(textBox5, $"[YOU to GENERAL]: {textBox4.Text}");
+            string msg = $"[YOU to GENERAL CHAT_{activeChat}]: {textBox4.Text}\r\n";
+            if (!chats.ContainsKey(activeChat))
+            {
+                chats[activeChat] = "";
+            }
+            chats[activeChat] += msg;
+            textBox5.AppendText(msg);
             textBox4.Clear();
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
-            if(!int.TryParse(textBox6.Text, out int targetPort))
+            if (!int.TryParse(textBox6.Text, out int targetPort))
             {
                 MessageBox.Show("Enter user's Port!");
                 return;
             }
             Message msgLog = new ChatLibrary.Models.Message()
             {
-                Id = 0, 
+                Id = 0,
                 AuthorId = localPort,
                 Text = textBox7.Text,
                 Time = DateTime.Now,
@@ -113,11 +137,11 @@ namespace UdpTeamChatApp
                 int serverPort = int.Parse(textBox2.Text);
                 client.Send(buff, buff.Length, new IPEndPoint(serverAddress, serverPort));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-            
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -137,6 +161,16 @@ namespace UdpTeamChatApp
                 client = new UdpClient(localPort);
                 Task.Run(() => StartListening());
                 textBox3.Enabled = false;
+                Message msgLog = new ChatLibrary.Models.Message()
+                {
+                    Id = 0,
+                    AuthorId = localPort,
+                    Text = "/connect",
+                    Time = DateTime.Now,
+                    ChatId = 1,
+                    Status = MessageStatus.NotReceived,
+                };
+                SendToServer(msgLog);
                 MessageBox.Show($"Connected to port {localPort}");
             }
             catch (Exception ex)
@@ -193,6 +227,17 @@ namespace UdpTeamChatApp
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             Disconnect();
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            activeChat = comboBox1.SelectedIndex + 1;
+            textBox5.Clear();
+            if (!chats.ContainsKey(activeChat))
+            {
+                chats[activeChat] = "";
+            }
+            textBox5.Text = chats[activeChat];
         }
     }
 }

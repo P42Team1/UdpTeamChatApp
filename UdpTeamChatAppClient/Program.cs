@@ -25,6 +25,29 @@ try
             Message incomingMsg = Newtonsoft.Json.JsonConvert.DeserializeObject<Message>(receivedJson);
             Console.WriteLine($"[RECEIVED] User {incomingMsg.AuthorId}: {incomingMsg.Text} (Chat {incomingMsg.ChatId})");
 
+            if (incomingMsg.Text == "/connect")
+            {
+                var sender = onlineUsers.FirstOrDefault(user => user.Id == incomingMsg.AuthorId);
+                if (sender is null)
+                {
+                    sender = new User
+                    {
+                        Id = incomingMsg.AuthorId,
+                        IPAddress = remoteEP.Address.ToString(),
+                        Port = remoteEP.Port,
+                        Status = UserStatus.Online,
+                    };
+                    onlineUsers.Add(sender);
+                    Console.WriteLine("===New user added===");
+                }
+                else
+                {
+                    sender.IPAddress = remoteEP.Address.ToString();
+                    sender.Port = remoteEP.Port;
+                }
+                continue;
+            }
+
             if (incomingMsg.Text == "/disconnect")
             {
                 var userToRemove = onlineUsers.FirstOrDefault(user=>user.Id == incomingMsg.AuthorId);
@@ -37,28 +60,9 @@ try
                 continue;
             }
 
-            var sender = onlineUsers.FirstOrDefault(user => user.Id == incomingMsg.AuthorId);
-            if (sender is null)
+            if (incomingMsg.ChatId >= 1 && incomingMsg.ChatId <= 100) // поки що максимум 100 групових чатів, як зробити їх нескінченну кількість ще не придумав
             {
-                sender = new User
-                {
-                    Id = incomingMsg.AuthorId,
-                    IPAddress = remoteEP.Address.ToString(),
-                    Port = remoteEP.Port,
-                    Status = UserStatus.Online,
-                };
-                onlineUsers.Add(sender);
-                Console.WriteLine("===New user added===");
-            }
-            else
-            {
-                sender.IPAddress = remoteEP.Address.ToString();
-                sender.Port = remoteEP.Port;
-            }
-
-            if (incomingMsg.ChatId == 1)
-            {
-                Console.WriteLine($"GENERAL from User {incomingMsg.AuthorId}");
+                Console.WriteLine($"[GENERAL CHAT_{incomingMsg.ChatId}] from User {incomingMsg.AuthorId}");
                 foreach (var user in onlineUsers)
                 {
                     if (user.Id != incomingMsg.AuthorId)

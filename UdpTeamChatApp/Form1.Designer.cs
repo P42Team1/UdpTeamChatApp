@@ -41,6 +41,8 @@
             button2 = new Button();
             button3 = new Button();
             groupBox1 = new GroupBox();
+            label7 = new Label();
+            comboBox1 = new ComboBox();
             groupBox2 = new GroupBox();
             textBox8 = new TextBox();
             textBox7 = new TextBox();
@@ -48,8 +50,6 @@
             label6 = new Label();
             button4 = new Button();
             textBox6 = new TextBox();
-            comboBox1 = new ComboBox();
-            label7 = new Label();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             SuspendLayout();
@@ -176,6 +176,25 @@
             groupBox1.TabStop = false;
             groupBox1.Text = "Send to chat";
             // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Location = new Point(412, 39);
+            label7.Name = "label7";
+            label7.Size = new Size(39, 20);
+            label7.TabIndex = 11;
+            label7.Text = "Chat";
+            // 
+            // comboBox1
+            // 
+            comboBox1.FormattingEnabled = true;
+            comboBox1.Items.AddRange(new object[] { "1", "2" });
+            comboBox1.Location = new Point(412, 62);
+            comboBox1.Name = "comboBox1";
+            comboBox1.Size = new Size(151, 28);
+            comboBox1.TabIndex = 10;
+            comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            // 
             // groupBox2
             // 
             groupBox2.Controls.Add(textBox8);
@@ -241,23 +260,6 @@
             textBox6.Name = "textBox6";
             textBox6.Size = new Size(125, 27);
             textBox6.TabIndex = 13;
-            // 
-            // comboBox1
-            // 
-            comboBox1.FormattingEnabled = true;
-            comboBox1.Location = new Point(412, 62);
-            comboBox1.Name = "comboBox1";
-            comboBox1.Size = new Size(151, 28);
-            comboBox1.TabIndex = 10;
-            // 
-            // label7
-            // 
-            label7.AutoSize = true;
-            label7.Location = new Point(412, 39);
-            label7.Name = "label7";
-            label7.Size = new Size(39, 20);
-            label7.TabIndex = 11;
-            label7.Text = "Chat";
             // 
             // Form1
             // 
