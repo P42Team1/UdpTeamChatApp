@@ -24,6 +24,7 @@ namespace UdpTeamChatApp
             button1.Enabled = false;
             button4.Enabled = false;
             comboBox1.SelectedIndex = 0;
+            panelPayAttention.Visible = false;
         }
         UdpClient _udpClient = new UdpClient();
         IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 10000);
