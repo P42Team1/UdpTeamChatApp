@@ -1,6 +1,10 @@
-﻿using System.Reflection.PortableExecutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace UdpTeamChatApp.Models
+namespace ChatLibrary.Models
 {
     public class User
     {
@@ -9,7 +13,7 @@ namespace UdpTeamChatApp.Models
         public int Port { get; set; }
         public UserStatus Status { get; set; }
         public DateTime OfflineFromTime { get; set; }
-        public ICollection<Chat> Chats {get; set;} = new List<Chat>();
+        public ICollection<Chat> Chats { get; set; } = new List<Chat>();
     }
 
     public enum UserStatus

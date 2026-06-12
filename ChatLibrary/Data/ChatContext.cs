@@ -1,14 +1,15 @@
+using ChatLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace UdpTeamChatApp.Data
 {
     public class ChatContext : DbContext
     {
-        public DbSet<User> Users {get; set;}
-        public DbSet<Message> Messages {get; set;}
-        public DbSet<Chat> Chats {get; set;}
+        public DbSet<User> Users { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Chat> Chats { get; set; }
 
-        public ChatContext(DbContextOptions<Context> options) : base(options)
+        public ChatContext(DbContextOptions<ChatContext> options) : base(options)
         {
             Database.EnsureCreated();
         }
