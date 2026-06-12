@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             button1 = new Button();
             textBox1 = new TextBox();
             textBox3 = new TextBox();
@@ -50,10 +51,14 @@
             label6 = new Label();
             button4 = new Button();
             textBox6 = new TextBox();
-            panel1 = new Panel();
+            panelChat = new Panel();
+            panelPayAttention = new Panel();
+            labelPayAttention = new Label();
+            labelPayAttentionHelp = new Label();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
-            panel1.SuspendLayout();
+            panelChat.SuspendLayout();
+            panelPayAttention.SuspendLayout();
             SuspendLayout();
             // 
             // button1
@@ -264,26 +269,57 @@
             textBox6.Size = new Size(125, 23);
             textBox6.TabIndex = 13;
             // 
-            // panel1
+            // panelChat
             // 
-            panel1.Controls.Add(label2);
-            panel1.Controls.Add(groupBox2);
-            panel1.Controls.Add(textBox3);
-            panel1.Controls.Add(groupBox1);
-            panel1.Controls.Add(button2);
-            panel1.Controls.Add(button3);
-            panel1.Dock = DockStyle.Fill;
-            panel1.Location = new Point(0, 0);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(1436, 723);
-            panel1.TabIndex = 14;
+            panelChat.Controls.Add(label2);
+            panelChat.Controls.Add(groupBox2);
+            panelChat.Controls.Add(textBox3);
+            panelChat.Controls.Add(groupBox1);
+            panelChat.Controls.Add(button2);
+            panelChat.Controls.Add(button3);
+            panelChat.Dock = DockStyle.Fill;
+            panelChat.Location = new Point(0, 0);
+            panelChat.Name = "panelChat";
+            panelChat.Size = new Size(1436, 723);
+            panelChat.TabIndex = 14;
+            // 
+            // panelPayAttention
+            // 
+            panelPayAttention.Controls.Add(labelPayAttentionHelp);
+            panelPayAttention.Controls.Add(labelPayAttention);
+            panelPayAttention.Dock = DockStyle.Fill;
+            panelPayAttention.Location = new Point(0, 0);
+            panelPayAttention.Name = "panelPayAttention";
+            panelPayAttention.Size = new Size(1436, 723);
+            panelPayAttention.TabIndex = 14;
+            // 
+            // labelPayAttention
+            // 
+            labelPayAttention.AutoSize = true;
+            labelPayAttention.Font = new Font("Segoe UI", 8F);
+            labelPayAttention.Location = new Point(3, 46);
+            labelPayAttention.Name = "labelPayAttention";
+            labelPayAttention.Size = new Size(1405, 13);
+            labelPayAttention.TabIndex = 0;
+            labelPayAttention.Text = resources.GetString("labelPayAttention.Text");
+            // 
+            // labelPayAttentionHelp
+            // 
+            labelPayAttentionHelp.AutoSize = true;
+            labelPayAttentionHelp.Font = new Font("Segoe UI", 12F);
+            labelPayAttentionHelp.Location = new Point(12, 153);
+            labelPayAttentionHelp.Name = "labelPayAttentionHelp";
+            labelPayAttentionHelp.Size = new Size(1224, 21);
+            labelPayAttentionHelp.TabIndex = 1;
+            labelPayAttentionHelp.Text = "Щоб переміщатись по панелям зайдіть в View > Other Windows > Document Outline(Ctrl + Alt + T). Щоб переміщатись натисність на стрілочку яка вказує вниз або вверх";
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1436, 723);
-            Controls.Add(panel1);
+            Controls.Add(panelPayAttention);
+            Controls.Add(panelChat);
             Name = "Form1";
             Text = "Form1";
             FormClosing += Form1_FormClosing;
@@ -291,8 +327,10 @@
             groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
-            panel1.ResumeLayout(false);
-            panel1.PerformLayout();
+            panelChat.ResumeLayout(false);
+            panelChat.PerformLayout();
+            panelPayAttention.ResumeLayout(false);
+            panelPayAttention.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -320,6 +358,9 @@
         private TextBox textBox6;
         private Label label7;
         private ComboBox comboBox1;
-        private Panel panel1;
+        private Panel panelChat;
+        private Panel panelPayAttention;
+        private Label labelPayAttentionHelp;
+        private Label labelPayAttention;
     }
 }

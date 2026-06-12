@@ -117,4 +117,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="labelPayAttention.Text" xml:space="preserve">
+    <value>Увага! Якщо хтось хоче додати якийсь об'єкт в форму, то будь ласка давайте йому власну назву (name) щоб можна було нормально об'єднувати гілки!!! Панелі також давайте власне ім'я і в Document Outline перемістіть її на той самий рівень з іншими панелями</value>
+  </data>
 </root>
