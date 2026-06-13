@@ -3,12 +3,13 @@ using System.Net.Sockets;
 using System.Text;
 using ChatLibrary;
 using ChatLibrary.Models;
+using UdpTeamChatAppServer;
 
 List<User> onlineUsers = new List<User>(); // тимчасова заміна БД поки не підключимо її
 
 int port = 10000;
 UdpClient udpServer = new UdpClient(port);
-
+AuthHandler authHandler = new AuthHandler(udpServer);
 
 int tempClientPort = 10020;
 

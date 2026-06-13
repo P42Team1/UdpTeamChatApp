@@ -53,8 +53,10 @@
             textBox6 = new TextBox();
             panelChat = new Panel();
             panelPayAttention = new Panel();
-            labelPayAttention = new Label();
             labelPayAttentionHelp = new Label();
+            labelPayAttention = new Label();
+            panelLogin = new Panel();
+            panelRegistrate = new Panel();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             panelChat.SuspendLayout();
@@ -293,16 +295,6 @@
             panelPayAttention.Size = new Size(1436, 723);
             panelPayAttention.TabIndex = 14;
             // 
-            // labelPayAttention
-            // 
-            labelPayAttention.AutoSize = true;
-            labelPayAttention.Font = new Font("Segoe UI", 8F);
-            labelPayAttention.Location = new Point(3, 46);
-            labelPayAttention.Name = "labelPayAttention";
-            labelPayAttention.Size = new Size(1405, 13);
-            labelPayAttention.TabIndex = 0;
-            labelPayAttention.Text = resources.GetString("labelPayAttention.Text");
-            // 
             // labelPayAttentionHelp
             // 
             labelPayAttentionHelp.AutoSize = true;
@@ -313,13 +305,41 @@
             labelPayAttentionHelp.TabIndex = 1;
             labelPayAttentionHelp.Text = "Щоб переміщатись по панелям зайдіть в View > Other Windows > Document Outline(Ctrl + Alt + T). Щоб переміщатись натисність на стрілочку яка вказує вниз або вверх";
             // 
+            // labelPayAttention
+            // 
+            labelPayAttention.AutoSize = true;
+            labelPayAttention.Font = new Font("Segoe UI", 8F);
+            labelPayAttention.Location = new Point(3, 46);
+            labelPayAttention.Name = "labelPayAttention";
+            labelPayAttention.Size = new Size(1405, 13);
+            labelPayAttention.TabIndex = 0;
+            labelPayAttention.Text = resources.GetString("labelPayAttention.Text");
+            // 
+            // panelLogin
+            // 
+            panelLogin.Dock = DockStyle.Fill;
+            panelLogin.Location = new Point(0, 0);
+            panelLogin.Name = "panelLogin";
+            panelLogin.Size = new Size(1436, 723);
+            panelLogin.TabIndex = 14;
+            // 
+            // panelRegistrate
+            // 
+            panelRegistrate.Dock = DockStyle.Fill;
+            panelRegistrate.Location = new Point(0, 0);
+            panelRegistrate.Name = "panelRegistrate";
+            panelRegistrate.Size = new Size(1436, 723);
+            panelRegistrate.TabIndex = 0;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1436, 723);
-            Controls.Add(panelPayAttention);
+            Controls.Add(panelRegistrate);
+            Controls.Add(panelLogin);
             Controls.Add(panelChat);
+            Controls.Add(panelPayAttention);
             Name = "Form1";
             Text = "Form1";
             FormClosing += Form1_FormClosing;
@@ -362,5 +382,7 @@
         private Panel panelPayAttention;
         private Label labelPayAttentionHelp;
         private Label labelPayAttention;
+        private Panel panelLogin;
+        private Panel panelRegistrate;
     }
 }
