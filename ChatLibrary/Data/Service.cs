@@ -8,5 +8,15 @@ namespace UdpTeamChatApp.Data
         {
             Context = context;
         }
+
+        public async Task AddObjects(params object[] objects)
+        {
+            await Context.AddRangeAsync(objects);
+        }
+
+        public async Task SaveDbChanges()
+        {
+            await Context.SaveChangesAsync();
+        }
     }
 }
