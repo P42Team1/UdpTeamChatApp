@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
 VisualStudioVersion = 18.6.11822.322
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UdpTeamChatApp", "UdpTeamChatApp\UdpTeamChatApp.csproj", "{DF6D3BB7-E7A2-420D-BEC3-59167D105A4E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatApp", "UdpTeamChatApp\UdpTeamChatApp.csproj", "{DF6D3BB7-E7A2-420D-BEC3-59167D105A4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatAppServer", "UdpTeamChatAppServer\UdpTeamChatAppServer.csproj", "{F67165B5-07E7-9514-C98D-B2398FB20AF4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatLibrary", "ChatLibrary\ChatLibrary.csproj", "{756BF776-5E5D-7226-ECCF-91D100AA447F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatAppServer", "UdpTeamChatAppServer\UdpTeamChatAppServer.csproj", "{F67165B5-07E7-9514-C98D-B2398FB20AF4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UdpTeamChatAppAuthServer", "UdpTeamChatAppAuthServer\UdpTeamChatAppAuthServer.csproj", "{09F56D93-7445-45E4-9146-6A411952661F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +21,18 @@ Global
 		{DF6D3BB7-E7A2-420D-BEC3-59167D105A4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF6D3BB7-E7A2-420D-BEC3-59167D105A4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF6D3BB7-E7A2-420D-BEC3-59167D105A4E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F67165B5-07E7-9514-C98D-B2398FB20AF4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F67165B5-07E7-9514-C98D-B2398FB20AF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F67165B5-07E7-9514-C98D-B2398FB20AF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F67165B5-07E7-9514-C98D-B2398FB20AF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{756BF776-5E5D-7226-ECCF-91D100AA447F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09F56D93-7445-45E4-9146-6A411952661F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09F56D93-7445-45E4-9146-6A411952661F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09F56D93-7445-45E4-9146-6A411952661F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09F56D93-7445-45E4-9146-6A411952661F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

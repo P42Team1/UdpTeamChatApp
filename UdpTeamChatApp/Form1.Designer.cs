@@ -56,11 +56,26 @@
             labelPayAttentionHelp = new Label();
             labelPayAttention = new Label();
             panelLogin = new Panel();
+            buttonGotoRegistrate = new Button();
+            buttonLogIn = new Button();
+            labelPassword_Log = new Label();
+            textBoxPassword_Log = new TextBox();
+            labelUsername_Log = new Label();
+            textBoxUsername_Log = new TextBox();
             panelRegistrate = new Panel();
+            buttonRegistrate = new Button();
+            labelPassword_Reg = new Label();
+            textBoxPassword_Reg = new TextBox();
+            labelEmail_Reg = new Label();
+            textBoxEmail_Reg = new TextBox();
+            labelUsername_Reg = new Label();
+            textBoxUsername_Reg = new TextBox();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             panelChat.SuspendLayout();
             panelPayAttention.SuspendLayout();
+            panelLogin.SuspendLayout();
+            panelRegistrate.SuspendLayout();
             SuspendLayout();
             // 
             // button1
@@ -317,27 +332,150 @@
             // 
             // panelLogin
             // 
+            panelLogin.Controls.Add(buttonGotoRegistrate);
+            panelLogin.Controls.Add(buttonLogIn);
+            panelLogin.Controls.Add(labelPassword_Log);
+            panelLogin.Controls.Add(textBoxPassword_Log);
+            panelLogin.Controls.Add(labelUsername_Log);
+            panelLogin.Controls.Add(textBoxUsername_Log);
             panelLogin.Dock = DockStyle.Fill;
             panelLogin.Location = new Point(0, 0);
             panelLogin.Name = "panelLogin";
             panelLogin.Size = new Size(1436, 723);
             panelLogin.TabIndex = 14;
             // 
+            // buttonGotoRegistrate
+            // 
+            buttonGotoRegistrate.Location = new Point(551, 316);
+            buttonGotoRegistrate.Name = "buttonGotoRegistrate";
+            buttonGotoRegistrate.Size = new Size(106, 23);
+            buttonGotoRegistrate.TabIndex = 13;
+            buttonGotoRegistrate.Text = "Go To Registrate";
+            buttonGotoRegistrate.UseVisualStyleBackColor = true;
+            buttonGotoRegistrate.Click += buttonGotoRegistrate_Click;
+            // 
+            // buttonLogIn
+            // 
+            buttonLogIn.Location = new Point(521, 363);
+            buttonLogIn.Name = "buttonLogIn";
+            buttonLogIn.Size = new Size(172, 23);
+            buttonLogIn.TabIndex = 12;
+            buttonLogIn.Text = "Log In";
+            buttonLogIn.UseVisualStyleBackColor = true;
+            buttonLogIn.Click += buttonLogIn_Click;
+            // 
+            // labelPassword_Log
+            // 
+            labelPassword_Log.AutoSize = true;
+            labelPassword_Log.Location = new Point(513, 269);
+            labelPassword_Log.Name = "labelPassword_Log";
+            labelPassword_Log.Size = new Size(57, 15);
+            labelPassword_Log.TabIndex = 11;
+            labelPassword_Log.Text = "Password";
+            // 
+            // textBoxPassword_Log
+            // 
+            textBoxPassword_Log.Location = new Point(513, 287);
+            textBoxPassword_Log.Name = "textBoxPassword_Log";
+            textBoxPassword_Log.Size = new Size(189, 23);
+            textBoxPassword_Log.TabIndex = 10;
+            // 
+            // labelUsername_Log
+            // 
+            labelUsername_Log.AutoSize = true;
+            labelUsername_Log.Location = new Point(513, 214);
+            labelUsername_Log.Name = "labelUsername_Log";
+            labelUsername_Log.Size = new Size(60, 15);
+            labelUsername_Log.TabIndex = 7;
+            labelUsername_Log.Text = "Username";
+            // 
+            // textBoxUsername_Log
+            // 
+            textBoxUsername_Log.Location = new Point(513, 232);
+            textBoxUsername_Log.Name = "textBoxUsername_Log";
+            textBoxUsername_Log.Size = new Size(189, 23);
+            textBoxUsername_Log.TabIndex = 6;
+            // 
             // panelRegistrate
             // 
+            panelRegistrate.Controls.Add(buttonRegistrate);
+            panelRegistrate.Controls.Add(labelPassword_Reg);
+            panelRegistrate.Controls.Add(textBoxPassword_Reg);
+            panelRegistrate.Controls.Add(labelEmail_Reg);
+            panelRegistrate.Controls.Add(textBoxEmail_Reg);
+            panelRegistrate.Controls.Add(labelUsername_Reg);
+            panelRegistrate.Controls.Add(textBoxUsername_Reg);
             panelRegistrate.Dock = DockStyle.Fill;
             panelRegistrate.Location = new Point(0, 0);
             panelRegistrate.Name = "panelRegistrate";
             panelRegistrate.Size = new Size(1436, 723);
             panelRegistrate.TabIndex = 0;
             // 
+            // buttonRegistrate
+            // 
+            buttonRegistrate.Location = new Point(589, 354);
+            buttonRegistrate.Name = "buttonRegistrate";
+            buttonRegistrate.Size = new Size(166, 23);
+            buttonRegistrate.TabIndex = 6;
+            buttonRegistrate.Text = "Registrate";
+            buttonRegistrate.UseVisualStyleBackColor = true;
+            buttonRegistrate.Click += buttonRegistrate_Click;
+            // 
+            // labelPassword_Reg
+            // 
+            labelPassword_Reg.AutoSize = true;
+            labelPassword_Reg.Location = new Point(579, 298);
+            labelPassword_Reg.Name = "labelPassword_Reg";
+            labelPassword_Reg.Size = new Size(57, 15);
+            labelPassword_Reg.TabIndex = 5;
+            labelPassword_Reg.Text = "Password";
+            // 
+            // textBoxPassword_Reg
+            // 
+            textBoxPassword_Reg.Location = new Point(579, 316);
+            textBoxPassword_Reg.Name = "textBoxPassword_Reg";
+            textBoxPassword_Reg.Size = new Size(189, 23);
+            textBoxPassword_Reg.TabIndex = 4;
+            // 
+            // labelEmail_Reg
+            // 
+            labelEmail_Reg.AutoSize = true;
+            labelEmail_Reg.Location = new Point(579, 250);
+            labelEmail_Reg.Name = "labelEmail_Reg";
+            labelEmail_Reg.Size = new Size(36, 15);
+            labelEmail_Reg.TabIndex = 3;
+            labelEmail_Reg.Text = "Email";
+            // 
+            // textBoxEmail_Reg
+            // 
+            textBoxEmail_Reg.Location = new Point(579, 268);
+            textBoxEmail_Reg.Name = "textBoxEmail_Reg";
+            textBoxEmail_Reg.Size = new Size(189, 23);
+            textBoxEmail_Reg.TabIndex = 2;
+            // 
+            // labelUsername_Reg
+            // 
+            labelUsername_Reg.AutoSize = true;
+            labelUsername_Reg.Location = new Point(579, 206);
+            labelUsername_Reg.Name = "labelUsername_Reg";
+            labelUsername_Reg.Size = new Size(60, 15);
+            labelUsername_Reg.TabIndex = 1;
+            labelUsername_Reg.Text = "Username";
+            // 
+            // textBoxUsername_Reg
+            // 
+            textBoxUsername_Reg.Location = new Point(579, 224);
+            textBoxUsername_Reg.Name = "textBoxUsername_Reg";
+            textBoxUsername_Reg.Size = new Size(189, 23);
+            textBoxUsername_Reg.TabIndex = 0;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1436, 723);
-            Controls.Add(panelRegistrate);
             Controls.Add(panelLogin);
+            Controls.Add(panelRegistrate);
             Controls.Add(panelChat);
             Controls.Add(panelPayAttention);
             Name = "Form1";
@@ -351,6 +489,10 @@
             panelChat.PerformLayout();
             panelPayAttention.ResumeLayout(false);
             panelPayAttention.PerformLayout();
+            panelLogin.ResumeLayout(false);
+            panelLogin.PerformLayout();
+            panelRegistrate.ResumeLayout(false);
+            panelRegistrate.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -384,5 +526,18 @@
         private Label labelPayAttention;
         private Panel panelLogin;
         private Panel panelRegistrate;
+        private TextBox textBoxUsername_Reg;
+        private Button buttonGotoRegistrate;
+        private Button buttonLogIn;
+        private Label labelPassword_Log;
+        private TextBox textBoxPassword_Log;
+        private Label labelUsername_Log;
+        private TextBox textBoxUsername_Log;
+        private Label labelPassword_Reg;
+        private TextBox textBoxPassword_Reg;
+        private Label labelEmail_Reg;
+        private TextBox textBoxEmail_Reg;
+        private Label labelUsername_Reg;
+        private Button buttonRegistrate;
     }
 }

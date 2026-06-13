@@ -25,9 +25,13 @@ namespace UdpTeamChatApp
             button4.Enabled = false;
             comboBox1.SelectedIndex = 0;
             panelPayAttention.Visible = false;
+            panelChat.Visible = false;
+            panelRegistrate.Visible = false;
+            panelLogin.Visible = true;
         }
         UdpClient _udpClient = new UdpClient();
         IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 10000);
+        IPEndPoint authserverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 10001);
 
         private void StartListening()
         {
@@ -59,7 +63,7 @@ namespace UdpTeamChatApp
                             }
                         }));
 
-                        
+
                     }
                     else
                     {
@@ -242,6 +246,68 @@ namespace UdpTeamChatApp
             }
             textBox5.Text = chats[activeChat];
         }
-      
+
+        private async void buttonRegistrate_Click(object sender, EventArgs e)
+        {
+            var payload = new RegisterPayload
+            {
+                Username = textBoxUsername_Reg.Text,
+                Password = textBoxPassword_Reg.Text,
+                Email = textBoxEmail_Reg.Text
+            };
+
+            var packet = Packet.Create(PacketType.Register, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, authserverEndPoint);
+
+            var result = await _udpClient.ReceiveAsync();
+            var response = Packet.FromBytes(result.Buffer);
+            var data = response.GetPayload<AuthResponsePayload>();
+
+            if (data.Success)
+            {
+                MessageBox.Show(data.Message);
+                panelRegistrate.Visible = false;
+                panelLogin.Visible = true;
+            }
+            else
+            {
+                MessageBox.Show($"Registration failed: {data.Message}");
+            }
+        }
+
+        private void buttonGotoRegistrate_Click(object sender, EventArgs e)
+        {
+            panelLogin.Visible = false;
+            panelRegistrate.Visible = true;
+        }
+
+        private async void buttonLogIn_Click(object sender, EventArgs e)
+        {
+            var payload = new LoginPayload
+            {
+                Username = textBoxUsername_Log.Text,
+                Password = textBoxPassword_Log.Text
+            };
+
+            var packet = Packet.Create(PacketType.Login, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, authserverEndPoint);
+
+            var result = await _udpClient.ReceiveAsync();
+            var response = Packet.FromBytes(result.Buffer);
+            var data = response.GetPayload<AuthResponsePayload>();
+
+            if (data.Success)
+            {
+                MessageBox.Show(data.Message);
+                panelLogin.Visible = false;
+                panelChat.Visible = true;
+            }
+            else
+            {
+                MessageBox.Show($"Log In failed: {data.Message}");
+            }
+        }
     }
 }
