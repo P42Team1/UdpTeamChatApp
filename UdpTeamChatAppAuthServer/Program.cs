@@ -1,11 +1,15 @@
 ﻿using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using ChatLibrary.Data;
 using ChatLibrary.Models;
 using UdpTeamChatAppServer;
 int port = 10001;
 UdpClient udpServer = new UdpClient(port);
-AuthHandler authHandler = new AuthHandler(udpServer);
+ChatContextFactory chatContextFactory = new ChatContextFactory();
+using ChatContext context = chatContextFactory.CreateDbContext(args);
+Service service = new Service(context);
+AuthHandler authHandler = new AuthHandler(udpServer, service);
 
 try
 {

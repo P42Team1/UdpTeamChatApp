@@ -252,7 +252,7 @@ namespace UdpTeamChatApp
             var payload = new RegisterPayload
             {
                 Username = textBoxUsername_Reg.Text,
-                Password = textBoxPassword_Reg.Text,
+                Password = DataEncryptor.HashPassword(textBoxPassword_Reg.Text),
                 Email = textBoxEmail_Reg.Text
             };
 
@@ -287,7 +287,7 @@ namespace UdpTeamChatApp
             var payload = new LoginPayload
             {
                 Username = textBoxUsername_Log.Text,
-                Password = textBoxPassword_Log.Text
+                Password = DataEncryptor.HashPassword(textBoxPassword_Log.Text)
             };
 
             var packet = Packet.Create(PacketType.Login, payload);
@@ -308,6 +308,12 @@ namespace UdpTeamChatApp
             {
                 MessageBox.Show($"Log In failed: {data.Message}");
             }
+        }
+
+        private void buttonReturnToLogIn_Click(object sender, EventArgs e)
+        {
+            panelRegistrate.Visible = false;
+            //panelLogin.Visible = true;
         }
     }
 }

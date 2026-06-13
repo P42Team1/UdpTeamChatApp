@@ -70,6 +70,7 @@
             textBoxEmail_Reg = new TextBox();
             labelUsername_Reg = new Label();
             textBoxUsername_Reg = new TextBox();
+            buttonReturnToLogIn = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             panelChat.SuspendLayout();
@@ -398,6 +399,7 @@
             // 
             // panelRegistrate
             // 
+            panelRegistrate.Controls.Add(buttonReturnToLogIn);
             panelRegistrate.Controls.Add(buttonRegistrate);
             panelRegistrate.Controls.Add(labelPassword_Reg);
             panelRegistrate.Controls.Add(textBoxPassword_Reg);
@@ -413,7 +415,7 @@
             // 
             // buttonRegistrate
             // 
-            buttonRegistrate.Location = new Point(589, 354);
+            buttonRegistrate.Location = new Point(590, 375);
             buttonRegistrate.Name = "buttonRegistrate";
             buttonRegistrate.Size = new Size(166, 23);
             buttonRegistrate.TabIndex = 6;
@@ -469,13 +471,23 @@
             textBoxUsername_Reg.Size = new Size(189, 23);
             textBoxUsername_Reg.TabIndex = 0;
             // 
+            // buttonReturnToLogIn
+            // 
+            buttonReturnToLogIn.Location = new Point(617, 345);
+            buttonReturnToLogIn.Name = "buttonReturnToLogIn";
+            buttonReturnToLogIn.Size = new Size(108, 23);
+            buttonReturnToLogIn.TabIndex = 7;
+            buttonReturnToLogIn.Text = "Return to Log In";
+            buttonReturnToLogIn.UseVisualStyleBackColor = true;
+            buttonReturnToLogIn.Click += buttonReturnToLogIn_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1436, 723);
-            Controls.Add(panelLogin);
             Controls.Add(panelRegistrate);
+            Controls.Add(panelLogin);
             Controls.Add(panelChat);
             Controls.Add(panelPayAttention);
             Name = "Form1";
@@ -539,5 +551,6 @@
         private TextBox textBoxEmail_Reg;
         private Label labelUsername_Reg;
         private Button buttonRegistrate;
+        private Button buttonReturnToLogIn;
     }
 }

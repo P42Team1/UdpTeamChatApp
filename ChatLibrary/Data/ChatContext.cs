@@ -1,7 +1,7 @@
 using ChatLibrary.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace UdpTeamChatApp.Data
+namespace ChatLibrary.Data
 {
     public class ChatContext : DbContext
     {
@@ -20,7 +20,11 @@ namespace UdpTeamChatApp.Data
             modelBuilder.Entity<User>()
                     .HasMany(u => u.Chats)
                     .WithMany(c => c.Members);
-            
+            modelBuilder.Entity<User>()
+                    .HasOne(u => u.LoginData)
+                    .WithOne(ld => ld.User)
+                    .HasForeignKey<UserLoginData>(ld => ld.UserId);
+
             modelBuilder.Entity<Chat>()
                     .HasMany(c => c.Messages)
                     .WithOne(m => m.Chat)

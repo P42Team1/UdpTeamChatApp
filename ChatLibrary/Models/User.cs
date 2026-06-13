@@ -15,7 +15,7 @@ namespace ChatLibrary.Models
         public DateTime OfflineFromTime { get; set; }
         public ICollection<Chat> Chats { get; set; } = new List<Chat>();
         public int LoginDataId { get; set; }
-        public UserLoginData LoginData { get; set; }
+        public UserLoginData? LoginData { get; set; }
     }
 
     public enum UserStatus
@@ -26,6 +26,7 @@ namespace ChatLibrary.Models
 
     public class UserLoginData
     {
+        public UserLoginData() { }
         public int Id {get; set;}
         public string Username {get; set;}
         public string Password {get; set;}
@@ -42,6 +43,6 @@ namespace ChatLibrary.Models
             Password = password;
         }
         public int UserId {get; set;}
-        public User User {get; set;}
+        public User? User {get; set;}
     }
 }
