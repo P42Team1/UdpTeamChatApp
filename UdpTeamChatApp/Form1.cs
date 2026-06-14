@@ -31,7 +31,6 @@ namespace UdpTeamChatApp
         }
         UdpClient _udpClient = new UdpClient();
         IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 10000);
-        IPEndPoint authserverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 10001);
 
         private void StartListening()
         {
@@ -41,34 +40,35 @@ namespace UdpTeamChatApp
                 try
                 {
                     byte[] buff = client.Receive(ref remoteEP);
-                    string receivedMessageJson = Encoding.UTF8.GetString(buff);
-                    Message incomingMsg = JsonConvert.DeserializeObject<Message>(receivedMessageJson);
+                    var packet = Packet.FromBytes(buff);
                     string displayTemplate;
-                    if (incomingMsg.ChatId >= 1 && incomingMsg.ChatId <= 100)
+                    if (packet.Type == PacketType.IncomingMessage)
                     {
-                        displayTemplate = $"[GENERAL CHAT_{incomingMsg.ChatId}] User {incomingMsg.AuthorId}: {incomingMsg.Text}\r\n";
-
-                        textBox5.BeginInvoke(new Action(() =>
+                        var incomingMsg = packet.GetPayload<IncomingMessagePayload>();
+                        if (incomingMsg.ChatId >= 1 && incomingMsg.ChatId <= 100)
                         {
-                            if (!chats.ContainsKey(incomingMsg.ChatId))
+                            displayTemplate = $"[GENERAL CHAT_{incomingMsg.ChatId}] User {incomingMsg.SenderId}: {incomingMsg.Text}\r\n";
+
+                            textBox5.BeginInvoke(new Action(() =>
                             {
-                                chats[incomingMsg.ChatId] = "";
-                            }
+                                if (!chats.ContainsKey(incomingMsg.ChatId))
+                                {
+                                    chats[incomingMsg.ChatId] = "";
+                                }
 
-                            chats[incomingMsg.ChatId] += displayTemplate;
+                                chats[incomingMsg.ChatId] += displayTemplate;
 
-                            if (incomingMsg.ChatId == activeChat)
-                            {
-                                textBox5.AppendText(displayTemplate);
-                            }
-                        }));
-
-
-                    }
-                    else
-                    {
-                        displayTemplate = $"[PRIVATE from User {incomingMsg.AuthorId}]: {incomingMsg.Text}";
-                        TextUpdate(textBox8, displayTemplate);
+                                if (incomingMsg.ChatId == activeChat)
+                                {
+                                    textBox5.AppendText(displayTemplate);
+                                }
+                            }));
+                        }
+                        else
+                        {
+                            displayTemplate = $"[PRIVATE from User {incomingMsg.SenderId}]: {incomingMsg.Text}";
+                            TextUpdate(textBox8, displayTemplate);
+                        }
                     }
                 }
                 catch (SocketException ex)
@@ -90,19 +90,16 @@ namespace UdpTeamChatApp
             targetTextBox.BeginInvoke(new Action(() => targetTextBox.AppendText(text + Environment.NewLine)));
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private async void button1_Click(object sender, EventArgs e)
         {
-            Message msgLog = new Message()
+            var packet = Packet.Create(PacketType.SendGroupMessage, new SendGroupMessagePayload
             {
-                Id = 0, // �������� �������� �� ���������� ��
-                AuthorId = localPort,
-                Text = textBox4.Text,
-                Time = DateTime.Now,
                 ChatId = comboBox1.SelectedIndex + 1,
-                Status = MessageStatus.NotReceived,
-            };
-
-            SendToServer(msgLog);
+                Text = textBox4.Text
+            });
+            packet.UserId = localPort;
+            var bytes = packet.ToBytes();
+            await client.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
             string msg = $"[YOU to GENERAL CHAT_{activeChat}]: {textBox4.Text}\r\n";
             if (!chats.ContainsKey(activeChat))
             {
@@ -113,43 +110,41 @@ namespace UdpTeamChatApp
             textBox4.Clear();
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private async void button4_Click(object sender, EventArgs e)
         {
             if (!int.TryParse(textBox6.Text, out int targetPort))
             {
                 MessageBox.Show("Enter user's Port!");
                 return;
             }
-            Message msgLog = new ChatLibrary.Models.Message()
+            var packet = Packet.Create(PacketType.SendPrivateMessage, new SendPrivateMessagePayload
             {
-                Id = 0,
-                AuthorId = localPort,
-                Text = textBox7.Text,
-                Time = DateTime.Now,
-                ChatId = targetPort,
-                Status = MessageStatus.NotReceived,
-            };
-            SendToServer(msgLog);
+                RecipientUserId = targetPort,
+                Text = textBox7.Text
+            });
+            packet.UserId = localPort;
+            var bytes = packet.ToBytes();
+            await client.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
             TextUpdate(textBox8, $"[PRIVATE to User {targetPort}]: {textBox7.Text}");
             textBox7.Clear();
         }
 
-        private void SendToServer(Message msgLog)
-        {
-            try
-            {
-                string jsonMessage = JsonConvert.SerializeObject(msgLog);
-                byte[] buff = Encoding.UTF8.GetBytes(jsonMessage);
-                IPAddress serverAddress = IPAddress.Parse(textBox1.Text);
-                int serverPort = int.Parse(textBox2.Text);
-                client.Send(buff, buff.Length, new IPEndPoint(serverAddress, serverPort));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+        //private void SendToServer(Message msgLog)
+        //{
+        //    try
+        //    {
+        //        string jsonMessage = JsonConvert.SerializeObject(msgLog);
+        //        byte[] buff = Encoding.UTF8.GetBytes(jsonMessage);
+        //        IPAddress serverAddress = IPAddress.Parse(textBox1.Text);
+        //        int serverPort = int.Parse(textBox2.Text);
+        //        client.Send(buff, buff.Length, new IPEndPoint(serverAddress, serverPort));
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show(ex.Message);
+        //    }
 
-        }
+        //}
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -163,22 +158,13 @@ namespace UdpTeamChatApp
 
             try
             {
-                button1.Enabled = true;
-                button4.Enabled = true;
                 client = new UdpClient(localPort);
                 Task.Run(() => StartListening());
-                textBox3.Enabled = false;
-                Message msgLog = new ChatLibrary.Models.Message()
-                {
-                    Id = 0,
-                    AuthorId = localPort,
-                    Text = "/connect",
-                    Time = DateTime.Now,
-                    ChatId = 1,
-                    Status = MessageStatus.NotReceived,
-                };
-                SendToServer(msgLog);
-                MessageBox.Show($"Connected to port {localPort}");
+                var packet = Packet.Create(PacketType.Connect, new ConnectPayload { UserId = localPort });
+                var bytes = packet.ToBytes();
+                client.Send(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
+                button1.Enabled = true;
+                button4.Enabled = true;
             }
             catch (Exception ex)
             {
@@ -192,22 +178,9 @@ namespace UdpTeamChatApp
             if (client == null) return;
             try
             {
-                Message msgLog = new Message()
-                {
-                    Id = 0,
-                    AuthorId = localPort,
-                    Text = "/disconnect",
-                    Time = DateTime.Now,
-                    ChatId = 1,
-                    Status = MessageStatus.NotReceived,
-                };
-
-                string jsonMessage = JsonConvert.SerializeObject(msgLog);
-
-                byte[] buff = Encoding.UTF8.GetBytes(jsonMessage);
-                IPAddress serverAddress = IPAddress.Parse(textBox1.Text);
-                int serverPort = int.Parse(textBox2.Text);
-                client.Send(buff, buff.Length, new IPEndPoint(serverAddress, serverPort));
+                var packet = Packet.Create(PacketType.Disconnect, new ConnectPayload { UserId = localPort });
+                var bytes = packet.ToBytes();
+                client.Send(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
             }
             catch (Exception ex)
             {
@@ -258,7 +231,7 @@ namespace UdpTeamChatApp
 
             var packet = Packet.Create(PacketType.Register, payload);
             var bytes = packet.ToBytes();
-            await _udpClient.SendAsync(bytes, bytes.Length, authserverEndPoint);
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
 
             var result = await _udpClient.ReceiveAsync();
             var response = Packet.FromBytes(result.Buffer);
@@ -292,7 +265,7 @@ namespace UdpTeamChatApp
 
             var packet = Packet.Create(PacketType.Login, payload);
             var bytes = packet.ToBytes();
-            await _udpClient.SendAsync(bytes, bytes.Length, authserverEndPoint);
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
 
             var result = await _udpClient.ReceiveAsync();
             var response = Packet.FromBytes(result.Buffer);

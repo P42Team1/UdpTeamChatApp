@@ -63,6 +63,7 @@
             labelUsername_Log = new Label();
             textBoxUsername_Log = new TextBox();
             panelRegistrate = new Panel();
+            buttonReturnToLogIn = new Button();
             buttonRegistrate = new Button();
             labelPassword_Reg = new Label();
             textBoxPassword_Reg = new TextBox();
@@ -70,7 +71,6 @@
             textBoxEmail_Reg = new TextBox();
             labelUsername_Reg = new Label();
             textBoxUsername_Reg = new TextBox();
-            buttonReturnToLogIn = new Button();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
             panelChat.SuspendLayout();
@@ -413,6 +413,16 @@
             panelRegistrate.Size = new Size(1436, 723);
             panelRegistrate.TabIndex = 0;
             // 
+            // buttonReturnToLogIn
+            // 
+            buttonReturnToLogIn.Location = new Point(617, 345);
+            buttonReturnToLogIn.Name = "buttonReturnToLogIn";
+            buttonReturnToLogIn.Size = new Size(108, 23);
+            buttonReturnToLogIn.TabIndex = 7;
+            buttonReturnToLogIn.Text = "Return to Log In";
+            buttonReturnToLogIn.UseVisualStyleBackColor = true;
+            buttonReturnToLogIn.Click += buttonReturnToLogIn_Click;
+            // 
             // buttonRegistrate
             // 
             buttonRegistrate.Location = new Point(590, 375);
@@ -471,24 +481,14 @@
             textBoxUsername_Reg.Size = new Size(189, 23);
             textBoxUsername_Reg.TabIndex = 0;
             // 
-            // buttonReturnToLogIn
-            // 
-            buttonReturnToLogIn.Location = new Point(617, 345);
-            buttonReturnToLogIn.Name = "buttonReturnToLogIn";
-            buttonReturnToLogIn.Size = new Size(108, 23);
-            buttonReturnToLogIn.TabIndex = 7;
-            buttonReturnToLogIn.Text = "Return to Log In";
-            buttonReturnToLogIn.UseVisualStyleBackColor = true;
-            buttonReturnToLogIn.Click += buttonReturnToLogIn_Click;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1436, 723);
+            Controls.Add(panelChat);
             Controls.Add(panelRegistrate);
             Controls.Add(panelLogin);
-            Controls.Add(panelChat);
             Controls.Add(panelPayAttention);
             Name = "Form1";
             Text = "Form1";

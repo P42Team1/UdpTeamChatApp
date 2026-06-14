@@ -12,16 +12,22 @@ using ChatLibrary.Data;
 
 namespace UdpTeamChatAppServer
 {
-    public class AuthHandler
+    public class Handler
     {
         private UdpClient _udpServer;
         private Service _service;
-        public AuthHandler(UdpClient udpServer, Service service)
+        private List<User> _onlineUsers = new List<User>();
+        public Handler(UdpClient udpServer, Service service, List<User> onlineUsers)
+        {
+            _udpServer = udpServer ?? throw new ArgumentNullException(nameof(udpServer));
+            _service = service ?? throw new ArgumentNullException(nameof(service));
+            _onlineUsers = onlineUsers ?? throw new ArgumentNullException(nameof(onlineUsers));
+        }
+        public Handler(UdpClient udpServer, Service service)
         {
             _udpServer = udpServer ?? throw new ArgumentNullException(nameof(udpServer));
             _service = service ?? throw new ArgumentNullException(nameof(service));
         }
-
         public async Task HandleRegister(Packet packet, IPEndPoint client)
         {
             var payload = packet.GetPayload<RegisterPayload>();
@@ -82,6 +88,112 @@ namespace UdpTeamChatAppServer
             };
             await Send(client, response);
 
+        }
+
+        public async Task HandleConnect(Packet packet, IPEndPoint clientEP)
+        {
+            ConnectPayload payload = packet.GetPayload<ConnectPayload>();
+            var sender = _onlineUsers.FirstOrDefault(user => user.Id == payload.UserId);
+            if (sender is null)
+            {
+                sender = new User
+                {
+                    Id = payload.UserId,
+                    IPAddress = clientEP.Address.ToString(),
+                    Port = clientEP.Port,
+                    Status = UserStatus.Online,
+                };
+                _onlineUsers.Add(sender);
+                Console.WriteLine($"===New user {sender.Id} added===");
+            }
+            else
+            {
+                sender.IPAddress = clientEP.Address.ToString();
+                sender.Port = clientEP.Port;
+            }       
+        }
+        public async Task HandleDisconnect(Packet packet)
+        {
+            var userToRemove = _onlineUsers.FirstOrDefault(user => user.Id == packet.UserId);
+            if (userToRemove is not null)
+            {
+                _onlineUsers.Remove(userToRemove);
+                Console.WriteLine($"=== User {packet.UserId} disconnected and removed from list ===");
+            }
+            Console.WriteLine($"Users online: {_onlineUsers.Count}");
+        }
+        public async Task HandleGroupMessage(Packet packet)
+        {
+            SendGroupMessagePayload payload = packet.GetPayload<SendGroupMessagePayload>();
+            var message = new Message
+            {
+                Id = 0,
+                AuthorId = packet.UserId,
+                ChatId = payload.ChatId,
+                Text = payload.Text,
+                Time = DateTime.Now,
+                Status = MessageStatus.NotReceived
+            };
+
+            Packet pushPacket = Packet.Create(PacketType.IncomingMessage, new IncomingMessagePayload
+            {
+                SenderId = packet.UserId,
+                ChatId = payload.ChatId,
+                Text = payload.Text,
+                Time = DateTime.Now
+            });
+            byte[] bytes = pushPacket.ToBytes();
+            foreach (var user in _onlineUsers)
+            {
+                if (user.Id != packet.UserId)
+                {
+                    try
+                    {
+                        IPAddress targetIP = IPAddress.Parse(user.IPAddress);
+                        int targetPort = user.Port;
+                        IPEndPoint targetEP = new IPEndPoint(targetIP, targetPort);
+                        _udpServer.SendAsync(bytes, bytes.Length, targetEP);
+                        Console.WriteLine($"Forwarded to User {user.Id} on port {targetPort}");
+                    }
+                    catch (Exception ex) { Console.WriteLine(ex.Message); }
+
+                }
+            }
+            Console.WriteLine($"[GENERAL CHAT_{payload.ChatId}] from User {packet.UserId}");
+            Console.WriteLine($"Sent to {_onlineUsers.Count - 1} users");
+        }
+        public async Task HandlePrivateMessage(Packet packet)
+        {
+            SendPrivateMessagePayload payload = packet.GetPayload<SendPrivateMessagePayload>();
+            var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == payload.RecipientUserId);
+
+            Console.WriteLine($"[PRIVATE] From User {packet.UserId} to User {payload.RecipientUserId}");
+
+            if (targetUser != null)
+            {
+                var message = new Message
+                {
+                    Id = 0,
+                    AuthorId = packet.UserId,
+                    ChatId = payload.RecipientUserId,
+                    Text = payload.Text,
+                    Time = DateTime.Now,
+                    Status = MessageStatus.NotReceived
+                };
+                Packet pushPacket = Packet.Create(PacketType.IncomingMessage, new IncomingMessagePayload
+                {
+                    SenderId = packet.UserId,
+                    ChatId = payload.RecipientUserId,
+                    Text = payload.Text,
+                    Time = DateTime.Now
+                });
+                byte[] bytes = pushPacket.ToBytes();
+                IPAddress targetUserIp = IPAddress.Parse(targetUser.IPAddress);
+                int targetUserPort = targetUser.Port;
+                IPEndPoint targetUserEP = new IPEndPoint(targetUserIp, targetUserPort);
+                await _udpServer.SendAsync(bytes, bytes.Length, targetUserEP);
+                Console.WriteLine($"Forwarded to User {targetUser.Id} on port {targetUserPort}");
+            }
         }
         private async Task Send<T>(IPEndPoint to, T data)
         {

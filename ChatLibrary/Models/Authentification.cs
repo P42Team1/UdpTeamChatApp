@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Core.Pipeline;
 
 namespace ChatLibrary.Models
 {
@@ -33,6 +34,29 @@ namespace ChatLibrary.Models
     {
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+    public class ConnectPayload
+    {
+        public int UserId { get; set; }
+    }
+    public class SendPrivateMessagePayload
+    {
+        public int RecipientUserId { get; set; }
+        public string Text { get; set; }
+    }
+    public class SendGroupMessagePayload
+    {
+        public int ChatId { get; set; }
+        public string Text { get; set; }
+        
+
+    }
+    public class IncomingMessagePayload
+    {
+        public int SenderId { get; set; }
+        public int ChatId { get; set; }
+        public string Text { get; set; }
+        public DateTime Time { get; set; }
     }
     public class Packet
     {
@@ -76,7 +100,17 @@ namespace ChatLibrary.Models
         Register,
         Login,
         Logout,
-        SendMessage,
-        AuthResponse
+        AuthResponse,
+
+        Connect,
+        Disconnect,
+        UserOnline,
+        UserOffline,
+
+        SendPrivateMessage,
+        SendGroupMessage,
+        IncomingMessage,
+
+        Error
     }
 }
