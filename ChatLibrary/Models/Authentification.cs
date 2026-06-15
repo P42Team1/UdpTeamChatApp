@@ -9,6 +9,40 @@ using Azure.Core.Pipeline;
 
 namespace ChatLibrary.Models
 {
+    // Get Chats ------
+
+    public class GetChatsPayload
+    {
+        public int UserId { get; set; }
+    }
+
+    public class ChatsResponsePayload
+    {
+        public List<ChatInfo> Chats { get; set; } = new();
+    }
+
+    public class ChatInfo
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class CreateChatPayload
+    {
+        public string Name { get; set; }
+        public int CreatorId { get; set; }
+    }
+
+    public class CreateChatResponsePayload
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public int ChatId { get; set; }
+
+    }
+
+    // ---------------
+
     public class RegisterPayload
     {
         public string Username { get; set; }
@@ -111,6 +145,15 @@ namespace ChatLibrary.Models
         SendGroupMessage,
         IncomingMessage,
 
-        Error
+        Error,
+
+        GetChats,
+        ChatsResponse,
+
+        CreateChat,
+        CreateChatResponse,
     }
+
+
+
 }

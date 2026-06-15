@@ -24,10 +24,18 @@ try
         {
             var result = await udpServer.ReceiveAsync();
             var packet = Packet.FromBytes(result.Buffer);
-            var payload = packet.GetPayload<IncomingMessagePayload>();
             var remoteEP = result.RemoteEndPoint;
-            Console.WriteLine(packet.Payload);
-            Console.WriteLine($"[RECEIVED] User {packet.UserId}: {payload.Text} (Chat {payload.ChatId})");
+            try
+            {
+                var payload = packet.GetPayload<IncomingMessagePayload>();
+                Console.WriteLine(packet.Payload);
+                Console.WriteLine($"[RECEIVED] User {packet.UserId}: {payload.Text} (Chat {payload.ChatId})");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"[RECEIVED] Packet type: {packet.Type} from {remoteEP}");
+            }
+            
 
             switch (packet.Type)
             {
@@ -48,6 +56,12 @@ try
                     break;
                 case PacketType.SendGroupMessage:
                     await handlers.HandleGroupMessage(packet);
+                    break;
+                case PacketType.GetChats:
+                    await handlers.HandleGetChats(remoteEP);
+                    break;
+                case PacketType.CreateChat:
+                    await handlers.HandleCreateChat(packet, remoteEP);
                     break;
                 default:
                     Console.WriteLine("Unknown packet type received");

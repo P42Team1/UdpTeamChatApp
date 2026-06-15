@@ -5,6 +5,7 @@ using ChatLibrary;
 using Newtonsoft.Json;
 using ChatLibrary.Models;
 using Message = ChatLibrary.Models.Message;
+using System.Threading.Tasks;
 
 namespace UdpTeamChatApp
 {
@@ -69,6 +70,13 @@ namespace UdpTeamChatApp
                             displayTemplate = $"[PRIVATE from User {incomingMsg.SenderId}]: {incomingMsg.Text}";
                             TextUpdate(textBox8, displayTemplate);
                         }
+                    }
+                    else if (packet.Type == PacketType.CreateChatResponse)
+                    {
+                        comboBox1.BeginInvoke(new Action(async () =>
+                        {
+                            await LoadChatsAsync();
+                        }));
                     }
                 }
                 catch (SocketException ex)
@@ -276,6 +284,7 @@ namespace UdpTeamChatApp
                 MessageBox.Show(data.Message);
                 panelLogin.Visible = false;
                 panelChat.Visible = true;
+                await LoadChatsAsync();
             }
             else
             {
@@ -287,6 +296,49 @@ namespace UdpTeamChatApp
         {
             panelRegistrate.Visible = false;
             //panelLogin.Visible = true;
+        }
+
+        public async Task LoadChatsAsync()
+        {
+            var payload = new GetChatsPayload { UserId = localPort };
+            var packet = Packet.Create(PacketType.GetChats, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+
+            var result = await _udpClient.ReceiveAsync();
+            var response = Packet.FromBytes(result.Buffer);
+            var data = response.GetPayload<ChatsResponsePayload>();
+
+            comboBox1.Items.Clear();
+            foreach (var item in data.Chats)
+            {
+                comboBox1.Items.Add(item.Name);
+            }
+            if (comboBox1.Items.Count > 0) comboBox1.SelectedIndex = 0;
+        }
+
+        private async void buttonCreateChat_Click(object sender, EventArgs e)
+        {
+            var form = new FormAddChat();
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                var packet = Packet.Create(PacketType.CreateChat, new CreateChatPayload
+                {
+                    Name = form.ChatName,
+                    CreatorId = localPort,
+                });
+                var bytes = packet.ToBytes();
+                await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+
+                var result = await _udpClient.ReceiveAsync();
+                var response = Packet.FromBytes(result.Buffer);
+                var data = response.GetPayload<CreateChatResponsePayload>();
+                if (data.Success)
+                {
+                    MessageBox.Show($"Chat '{form.ChatName}' created");
+                    await LoadChatsAsync();
+                }
+            }
         }
     }
 }

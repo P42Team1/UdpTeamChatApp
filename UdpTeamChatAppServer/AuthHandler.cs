@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ChatLibrary;
 using ChatLibrary.Models;
 using ChatLibrary.Data;
+using System.Net.Http.Headers;
 
 namespace UdpTeamChatAppServer
 {
@@ -200,6 +201,42 @@ namespace UdpTeamChatAppServer
             var packet = Packet.Create(PacketType.AuthResponse, data);
             var bytes = packet.ToBytes();
             await _udpServer.SendAsync(bytes, bytes.Length, to);
+        }
+
+        public async Task HandleGetChats(IPEndPoint client)
+        {
+            var chats = await _service.GetAllChatsAsync();
+            var response = new ChatsResponsePayload
+            {
+                Chats = chats.Select(c => new ChatInfo { Id = c.Id, Name = c.Name }).ToList()
+            };
+            var packet = Packet.Create(PacketType.ChatsResponse, response);
+            var bytes = packet.ToBytes();
+            await _udpServer.SendAsync(bytes, bytes.Length, client);
+        }
+
+        public async Task HandleCreateChat(Packet packet, IPEndPoint clientEP)
+        {
+            var payload = packet.GetPayload<CreateChatPayload>();
+            var chat = await _service.CreateChatAsync(payload.Name);
+            var response = new CreateChatResponsePayload
+            {
+                Success = true,
+                Message = "Chat created",
+                ChatId = chat.Id,
+            };
+            var responsePacket = Packet.Create(PacketType.CreateChatResponse, response);
+            var bytes = responsePacket.ToBytes();
+            await _udpServer.SendAsync(bytes, bytes.Length, clientEP);
+
+            foreach(var user in _onlineUsers)
+            {
+                if (user.Port != clientEP.Port)
+                {
+                    IPEndPoint userEP = new IPEndPoint(IPAddress.Parse(user.IPAddress), user.Port);
+                    await _udpServer.SendAsync(bytes, bytes.Length, userEP);
+                }
+            }
         }
     }
 }

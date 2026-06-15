@@ -48,5 +48,22 @@ namespace ChatLibrary.Data
         {
             await Context.SaveChangesAsync();
         }
+
+        public async Task<List<Chat>> GetAllChatsAsync()
+        {
+            return await Context.Chats.ToListAsync();
+        }
+
+        public async Task<Chat> CreateChatAsync(string name)
+        {
+            var chat = new Chat
+            {
+                Name = name,
+                IsGroup = true,
+            };
+            await Context.Chats.AddAsync(chat);
+            await Context.SaveChangesAsync();
+            return chat;
+        }
     }
 }
