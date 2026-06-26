@@ -6,12 +6,12 @@ using ChatLibrary.Data;
 using ChatLibrary.Models;
 using UdpTeamChatAppServer;
 
-List<User> onlineUsers = new List<User>(); // тимчасова заміна БД поки не підключимо її
 int port = 10000;
 UdpClient udpServer = new UdpClient(port);
 ChatContextFactory chatContextFactory = new ChatContextFactory();
 using ChatContext context = chatContextFactory.CreateDbContext(args);
 Service service = new Service(context);
+List<User> onlineUsers = service.GetOnlineUsers();
 Handler handlers = new Handler(udpServer, service, onlineUsers);
 int tempClientPort = 10020;
 

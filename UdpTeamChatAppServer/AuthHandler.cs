@@ -105,6 +105,7 @@ namespace UdpTeamChatAppServer
                     Status = UserStatus.Online,
                 };
                 _onlineUsers.Add(sender);
+                _service.SetUserOnline(sender);
                 Console.WriteLine($"===New user {sender.Id} added===");
             }
             else
@@ -119,6 +120,7 @@ namespace UdpTeamChatAppServer
             if (userToRemove is not null)
             {
                 _onlineUsers.Remove(userToRemove);
+                _service.SetUserOffline(userToRemove);
                 Console.WriteLine($"=== User {packet.UserId} disconnected and removed from list ===");
             }
             Console.WriteLine($"Users online: {_onlineUsers.Count}");
@@ -135,6 +137,7 @@ namespace UdpTeamChatAppServer
                 Time = DateTime.Now,
                 Status = MessageStatus.NotReceived
             };
+            _service.AddObjects(message);
 
             Packet pushPacket = Packet.Create(PacketType.IncomingMessage, new IncomingMessagePayload
             {
@@ -181,6 +184,7 @@ namespace UdpTeamChatAppServer
                     Time = DateTime.Now,
                     Status = MessageStatus.NotReceived
                 };
+                _service.AddObjects(message);
                 Packet pushPacket = Packet.Create(PacketType.IncomingMessage, new IncomingMessagePayload
                 {
                     SenderId = packet.UserId,
