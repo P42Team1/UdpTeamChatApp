@@ -11,10 +11,10 @@ UdpClient udpServer = new UdpClient(port);
 ChatContextFactory chatContextFactory = new ChatContextFactory();
 using ChatContext context = chatContextFactory.CreateDbContext(args);
 Service service = new Service(context);
-List<User> onlineUsers = service.GetOnlineUsers();
+await service.ResetAllUsersOffline();
+List<User> onlineUsers = await service.GetOnlineUsers() ?? new List<User>();
 Handler handlers = new Handler(udpServer, service, onlineUsers);
 int tempClientPort = 10020;
-
 
 try
 {
@@ -49,6 +49,7 @@ try
                     await handlers.HandleConnect(packet, remoteEP);
                     break;
                 case PacketType.Disconnect:
+                    Console.WriteLine($"[DEBUG] Disconnect received from {remoteEP}");
                     await handlers.HandleDisconnect(packet);
                     break;
                 case PacketType.SendPrivateMessage:
@@ -68,7 +69,7 @@ try
                     break;
             }         
         }
-        catch (Exception ex) { Console.WriteLine(ex.Message); }
+        catch (Exception ex) { Console.WriteLine(ex); }
         
     }
 }

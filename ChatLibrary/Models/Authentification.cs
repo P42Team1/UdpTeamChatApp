@@ -75,11 +75,13 @@ namespace ChatLibrary.Models
     }
     public class SendPrivateMessagePayload
     {
+        public int SenderId { get; set; }
         public int RecipientUserId { get; set; }
         public string Text { get; set; }
     }
     public class SendGroupMessagePayload
     {
+        public int SenderId { get; set; }
         public int ChatId { get; set; }
         public string Text { get; set; }
         
@@ -89,6 +91,13 @@ namespace ChatLibrary.Models
     {
         public int SenderId { get; set; }
         public int ChatId { get; set; }
+        public string Text { get; set; }
+        public DateTime Time { get; set; }
+    }
+    public class IncomingPrivateMessagePayload
+    {
+        public int SenderId { get; set; }
+        public int RecepientId { get; set; }
         public string Text { get; set; }
         public DateTime Time { get; set; }
     }
@@ -144,6 +153,7 @@ namespace ChatLibrary.Models
         SendPrivateMessage,
         SendGroupMessage,
         IncomingMessage,
+        IncomingPrivateMessage,
 
         Error,
 

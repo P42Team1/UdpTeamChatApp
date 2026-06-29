@@ -68,7 +68,7 @@ namespace UdpTeamChatAppServer
             var payload = packet.GetPayload<LoginPayload>();
             var user = new UserLoginData(payload.Username, payload.Password);
 
-            var loginData = await _service.UserLoginAsync(payload.Username, payload.Password);
+            var loginData = await _service.GetUserLoginAsync(payload.Username, payload.Password);
 
             if(loginData == null)
             {
@@ -105,22 +105,25 @@ namespace UdpTeamChatAppServer
                     Status = UserStatus.Online,
                 };
                 _onlineUsers.Add(sender);
-                _service.SetUserOnline(sender);
-                Console.WriteLine($"===New user {sender.Id} added===");
             }
             else
             {
                 sender.IPAddress = clientEP.Address.ToString();
                 sender.Port = clientEP.Port;
-            }       
+            }
+
+            Console.WriteLine($"=== User connected: Id={payload.UserId}, Port={clientEP.Port} ===");
+            await _service.SetUserOnline(sender);
+            Console.WriteLine($"===New user {sender.Id} added===");
         }
         public async Task HandleDisconnect(Packet packet)
         {
-            var userToRemove = _onlineUsers.FirstOrDefault(user => user.Id == packet.UserId);
+            var payload = packet.GetPayload<ConnectPayload>();
+            var userToRemove = _onlineUsers.FirstOrDefault(user => user.Id == payload.UserId);
             if (userToRemove is not null)
             {
                 _onlineUsers.Remove(userToRemove);
-                _service.SetUserOffline(userToRemove);
+                await _service.SetUserOffline(userToRemove);
                 Console.WriteLine($"=== User {packet.UserId} disconnected and removed from list ===");
             }
             Console.WriteLine($"Users online: {_onlineUsers.Count}");
@@ -130,18 +133,17 @@ namespace UdpTeamChatAppServer
             SendGroupMessagePayload payload = packet.GetPayload<SendGroupMessagePayload>();
             var message = new Message
             {
-                Id = 0,
-                AuthorId = packet.UserId,
+                AuthorId = payload.SenderId,
                 ChatId = payload.ChatId,
                 Text = payload.Text,
                 Time = DateTime.Now,
                 Status = MessageStatus.NotReceived
             };
-            _service.AddObjects(message);
+            await _service.AddObjects(message);
 
             Packet pushPacket = Packet.Create(PacketType.IncomingMessage, new IncomingMessagePayload
             {
-                SenderId = packet.UserId,
+                SenderId = payload.SenderId,
                 ChatId = payload.ChatId,
                 Text = payload.Text,
                 Time = DateTime.Now
@@ -149,14 +151,14 @@ namespace UdpTeamChatAppServer
             byte[] bytes = pushPacket.ToBytes();
             foreach (var user in _onlineUsers)
             {
-                if (user.Id != packet.UserId)
+                if (user.Id != payload.SenderId)
                 {
                     try
                     {
                         IPAddress targetIP = IPAddress.Parse(user.IPAddress);
                         int targetPort = user.Port;
                         IPEndPoint targetEP = new IPEndPoint(targetIP, targetPort);
-                        _udpServer.SendAsync(bytes, bytes.Length, targetEP);
+                        await _udpServer.SendAsync(bytes, bytes.Length, targetEP);
                         Console.WriteLine($"Forwarded to User {user.Id} on port {targetPort}");
                     }
                     catch (Exception ex) { Console.WriteLine(ex.Message); }
@@ -170,27 +172,27 @@ namespace UdpTeamChatAppServer
         {
             SendPrivateMessagePayload payload = packet.GetPayload<SendPrivateMessagePayload>();
             var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == payload.RecipientUserId);
-
-            Console.WriteLine($"[PRIVATE] From User {packet.UserId} to User {payload.RecipientUserId}");
+            Console.WriteLine($"Target user found: {targetUser != null}, RecipientId: {payload.RecipientUserId}");
+            Console.WriteLine($"Online users: {string.Join(", ", _onlineUsers.Select(u => u.Id))}");
+            Console.WriteLine($"[PRIVATE] From User {payload.SenderId} to User {payload.RecipientUserId}");
 
             if (targetUser != null)
             {
                 var message = new Message
                 {
-                    Id = 0,
-                    AuthorId = packet.UserId,
+                    AuthorId = payload.SenderId,
                     ChatId = payload.RecipientUserId,
                     Text = payload.Text,
                     Time = DateTime.Now,
                     Status = MessageStatus.NotReceived
                 };
-                _service.AddObjects(message);
-                Packet pushPacket = Packet.Create(PacketType.IncomingMessage, new IncomingMessagePayload
+                //await _service.AddObjects(message);
+                Packet pushPacket = Packet.Create(PacketType.IncomingPrivateMessage, new IncomingPrivateMessagePayload
                 {
-                    SenderId = packet.UserId,
-                    ChatId = payload.RecipientUserId,
+                    SenderId = payload.SenderId,
+                    RecepientId = payload.RecipientUserId,
                     Text = payload.Text,
-                    Time = DateTime.Now
+                    Time = DateTime.Now,
                 });
                 byte[] bytes = pushPacket.ToBytes();
                 IPAddress targetUserIp = IPAddress.Parse(targetUser.IPAddress);

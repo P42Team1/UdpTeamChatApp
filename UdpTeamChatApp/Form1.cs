@@ -16,7 +16,7 @@ namespace UdpTeamChatApp
         public int localPort;
         public int activeChat = 1;
         public Dictionary<int, string> chats = new Dictionary<int, string>();
-
+        int currentUserId;
         public Form1()
         {
             InitializeComponent();
@@ -43,10 +43,10 @@ namespace UdpTeamChatApp
                     byte[] buff = client.Receive(ref remoteEP);
                     var packet = Packet.FromBytes(buff);
                     string displayTemplate;
-                    if (packet.Type == PacketType.IncomingMessage)
+                    if (packet.Type == PacketType.IncomingMessage || packet.Type == PacketType.IncomingPrivateMessage)
                     {
                         var incomingMsg = packet.GetPayload<IncomingMessagePayload>();
-                        if (incomingMsg.ChatId >= 1 && incomingMsg.ChatId <= 100)
+                        if (packet.Type == PacketType.IncomingMessage)
                         {
                             displayTemplate = $"[GENERAL CHAT_{incomingMsg.ChatId}] User {incomingMsg.SenderId}: {incomingMsg.Text}\r\n";
 
@@ -65,7 +65,7 @@ namespace UdpTeamChatApp
                                 }
                             }));
                         }
-                        else
+                        else if (packet.Type == PacketType.IncomingPrivateMessage)
                         {
                             displayTemplate = $"[PRIVATE from User {incomingMsg.SenderId}]: {incomingMsg.Text}";
                             TextUpdate(textBox8, displayTemplate);
@@ -102,10 +102,10 @@ namespace UdpTeamChatApp
         {
             var packet = Packet.Create(PacketType.SendGroupMessage, new SendGroupMessagePayload
             {
+                SenderId = currentUserId,
                 ChatId = comboBox1.SelectedIndex + 1,
                 Text = textBox4.Text
             });
-            packet.UserId = localPort;
             var bytes = packet.ToBytes();
             await client.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
             string msg = $"[YOU to GENERAL CHAT_{activeChat}]: {textBox4.Text}\r\n";
@@ -120,20 +120,20 @@ namespace UdpTeamChatApp
 
         private async void button4_Click(object sender, EventArgs e)
         {
-            if (!int.TryParse(textBox6.Text, out int targetPort))
+            if (!int.TryParse(textBox6.Text, out int targetId))
             {
-                MessageBox.Show("Enter user's Port!");
+                MessageBox.Show("Enter user's Id!");
                 return;
             }
             var packet = Packet.Create(PacketType.SendPrivateMessage, new SendPrivateMessagePayload
             {
-                RecipientUserId = targetPort,
+                SenderId = currentUserId,
+                RecipientUserId = targetId,
                 Text = textBox7.Text
             });
-            packet.UserId = localPort;
             var bytes = packet.ToBytes();
             await client.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
-            TextUpdate(textBox8, $"[PRIVATE to User {targetPort}]: {textBox7.Text}");
+            TextUpdate(textBox8, $"[PRIVATE to User {targetId}]: {textBox7.Text}");
             textBox7.Clear();
         }
 
@@ -168,7 +168,7 @@ namespace UdpTeamChatApp
             {
                 client = new UdpClient(localPort);
                 Task.Run(() => StartListening());
-                var packet = Packet.Create(PacketType.Connect, new ConnectPayload { UserId = localPort });
+                var packet = Packet.Create(PacketType.Connect, new ConnectPayload { UserId = currentUserId });
                 var bytes = packet.ToBytes();
                 client.Send(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
                 button1.Enabled = true;
@@ -186,9 +186,10 @@ namespace UdpTeamChatApp
             if (client == null) return;
             try
             {
-                var packet = Packet.Create(PacketType.Disconnect, new ConnectPayload { UserId = localPort });
+                var packet = Packet.Create(PacketType.Disconnect, new ConnectPayload { UserId = currentUserId });
                 var bytes = packet.ToBytes();
                 client.Send(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
+                Thread.Sleep(100);
             }
             catch (Exception ex)
             {
@@ -281,6 +282,7 @@ namespace UdpTeamChatApp
 
             if (data.Success)
             {
+                currentUserId = data.UserId;
                 MessageBox.Show(data.Message);
                 panelLogin.Visible = false;
                 panelChat.Visible = true;

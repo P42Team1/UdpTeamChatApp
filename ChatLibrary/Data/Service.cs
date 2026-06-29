@@ -76,7 +76,7 @@ namespace ChatLibrary.Data
 
         public async Task<List<User>?> GetOnlineUsers()
         {
-            return await Context.Users.Include(u => u.Status)
+            return await Context.Users
                                 .Where(u => u.Status == UserStatus.Online)
                                 .ToListAsync();
         }
@@ -85,6 +85,8 @@ namespace ChatLibrary.Data
         {
             User u = await Context.Users.FirstOrDefaultAsync(u => u.Id == user.Id) ?? throw new ArgumentException("User does not exist");
             u.Status = UserStatus.Online;
+            u.IPAddress = user.IPAddress;
+            u.Port = user.Port;
             await Context.SaveChangesAsync();
             return u;
         }
@@ -96,6 +98,17 @@ namespace ChatLibrary.Data
             u.OfflineFromTime = DateTime.Now;
             await Context.SaveChangesAsync();
             return u;
+        }
+        public async Task ResetAllUsersOffline()
+        {
+            var users = await Context.Users
+                .Where(u => u.Status == UserStatus.Online)
+                .ToListAsync();
+            foreach (var u in users)
+            {
+                u.Status = UserStatus.Offline;
+            }
+            await Context.SaveChangesAsync();
         }
     }
 }
