@@ -5,9 +5,44 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Core.Pipeline;
 
 namespace ChatLibrary.Models
 {
+    // Get Chats ------
+
+    public class GetChatsPayload
+    {
+        public int UserId { get; set; }
+    }
+
+    public class ChatsResponsePayload
+    {
+        public List<ChatInfo> Chats { get; set; } = new();
+    }
+
+    public class ChatInfo
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class CreateChatPayload
+    {
+        public string Name { get; set; }
+        public int CreatorId { get; set; }
+    }
+
+    public class CreateChatResponsePayload
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public int ChatId { get; set; }
+
+    }
+
+    // ---------------
+
     public class RegisterPayload
     {
         public string Username { get; set; }
@@ -33,6 +68,38 @@ namespace ChatLibrary.Models
     {
         public string Username { get; set; }
         public string Password { get; set; }
+    }
+    public class ConnectPayload
+    {
+        public int UserId { get; set; }
+    }
+    public class SendPrivateMessagePayload
+    {
+        public int SenderId { get; set; }
+        public int RecipientUserId { get; set; }
+        public string Text { get; set; }
+    }
+    public class SendGroupMessagePayload
+    {
+        public int SenderId { get; set; }
+        public int ChatId { get; set; }
+        public string Text { get; set; }
+        
+
+    }
+    public class IncomingMessagePayload
+    {
+        public int SenderId { get; set; }
+        public int ChatId { get; set; }
+        public string Text { get; set; }
+        public DateTime Time { get; set; }
+    }
+    public class IncomingPrivateMessagePayload
+    {
+        public int SenderId { get; set; }
+        public int RecepientId { get; set; }
+        public string Text { get; set; }
+        public DateTime Time { get; set; }
     }
     public class Packet
     {
@@ -76,7 +143,27 @@ namespace ChatLibrary.Models
         Register,
         Login,
         Logout,
-        SendMessage,
-        AuthResponse
+        AuthResponse,
+
+        Connect,
+        Disconnect,
+        UserOnline,
+        UserOffline,
+
+        SendPrivateMessage,
+        SendGroupMessage,
+        IncomingMessage,
+        IncomingPrivateMessage,
+
+        Error,
+
+        GetChats,
+        ChatsResponse,
+
+        CreateChat,
+        CreateChatResponse,
     }
+
+
+
 }

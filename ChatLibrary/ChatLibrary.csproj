@@ -20,4 +20,10 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.8" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\appSettings.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

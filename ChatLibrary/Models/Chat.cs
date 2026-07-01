@@ -14,5 +14,6 @@ namespace ChatLibrary.Models
         public ICollection<Message> Messages { get; set; } = new List<Message>();
         public bool IsGroup { get; set; }
     }
+
 }
 
