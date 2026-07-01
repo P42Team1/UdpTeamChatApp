@@ -124,7 +124,7 @@ namespace UdpTeamChatAppServer
             {
                 _onlineUsers.Remove(userToRemove);
                 await _service.SetUserOffline(userToRemove);
-                Console.WriteLine($"=== User {packet.UserId} disconnected and removed from list ===");
+                Console.WriteLine($"=== User {payload.UserId} disconnected and removed from list ===");
             }
             Console.WriteLine($"Users online: {_onlineUsers.Count}");
         }
@@ -172,6 +172,8 @@ namespace UdpTeamChatAppServer
         {
             SendPrivateMessagePayload payload = packet.GetPayload<SendPrivateMessagePayload>();
             var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == payload.RecipientUserId);
+
+            Chat chat = await _service.GetOrCreatePrivateChatAsync(payload.SenderId, payload.RecipientUserId);
             Console.WriteLine($"Target user found: {targetUser != null}, RecipientId: {payload.RecipientUserId}");
             Console.WriteLine($"Online users: {string.Join(", ", _onlineUsers.Select(u => u.Id))}");
             Console.WriteLine($"[PRIVATE] From User {payload.SenderId} to User {payload.RecipientUserId}");
@@ -181,12 +183,12 @@ namespace UdpTeamChatAppServer
                 var message = new Message
                 {
                     AuthorId = payload.SenderId,
-                    ChatId = payload.RecipientUserId,
+                    ChatId = chat.Id,
                     Text = payload.Text,
                     Time = DateTime.Now,
                     Status = MessageStatus.NotReceived
                 };
-                //await _service.AddObjects(message);
+                await _service.AddObjects(message);
                 Packet pushPacket = Packet.Create(PacketType.IncomingPrivateMessage, new IncomingPrivateMessagePayload
                 {
                     SenderId = payload.SenderId,

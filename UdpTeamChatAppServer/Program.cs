@@ -25,17 +25,8 @@ try
             var result = await udpServer.ReceiveAsync();
             var packet = Packet.FromBytes(result.Buffer);
             var remoteEP = result.RemoteEndPoint;
-            try
-            {
-                var payload = packet.GetPayload<IncomingMessagePayload>();
-                Console.WriteLine(packet.Payload);
-                Console.WriteLine($"[RECEIVED] User {packet.UserId}: {payload.Text} (Chat {payload.ChatId})");
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine($"[RECEIVED] Packet type: {packet.Type} from {remoteEP}");
-            }
-            
+            Console.WriteLine($"[RECEIVED] {packet.Type} from {remoteEP} | {packet.Payload}");
+
 
             switch (packet.Type)
             {

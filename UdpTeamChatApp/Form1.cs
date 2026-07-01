@@ -302,7 +302,7 @@ namespace UdpTeamChatApp
 
         public async Task LoadChatsAsync()
         {
-            var payload = new GetChatsPayload { UserId = localPort };
+            var payload = new GetChatsPayload { UserId = currentUserId };
             var packet = Packet.Create(PacketType.GetChats, payload);
             var bytes = packet.ToBytes();
             await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);

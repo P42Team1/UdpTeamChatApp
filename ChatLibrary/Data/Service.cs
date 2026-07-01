@@ -73,6 +73,28 @@ namespace ChatLibrary.Data
             await Context.SaveChangesAsync();
             return chat;
         }
+        public async Task<Chat> GetOrCreatePrivateChatAsync(int userIdA, int userIdB)
+        {
+            Chat? existing = await Context.Chats
+                .Include(c => c.Members)
+                .Where(c => !c.IsGroup && c.Members.Count == 2)
+                .Where(c => !c.IsGroup && c.Members.Any(m => m.Id == userIdA) && c.Members.Any(m => m.Id == userIdB))
+                .FirstOrDefaultAsync();
+            if (existing != null) return existing;
+
+            User userA = await Context.Users.FirstAsync(u => u.Id == userIdA);
+            User userB = await Context.Users.FirstAsync(u => u.Id == userIdB);
+
+            Chat chat = new Chat
+            {
+                Name = $"private_{userA.Id}_{userB.Id}",
+                IsGroup = false,
+                Members = new List<User> { userA, userB }
+            };
+            await Context.Chats.AddAsync(chat);
+            await Context.SaveChangesAsync();
+            return chat;
+        }
 
         public async Task<List<User>?> GetOnlineUsers()
         {
