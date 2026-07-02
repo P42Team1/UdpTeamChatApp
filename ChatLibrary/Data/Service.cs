@@ -132,5 +132,26 @@ namespace ChatLibrary.Data
             }
             await Context.SaveChangesAsync();
         }
+
+        public async Task<List<Message>> GetNotReceivedMessagesAsync(int userId)
+        {
+            return await Context.Messages
+                .Include(m => m.Chat)
+            .Where(m =>
+                m.Status == MessageStatus.NotReceived &&
+                m.AuthorId != userId &&
+                m.Chat.Members.Any(u => u.Id == userId))
+            .ToListAsync();
+        }
+
+        public async Task SaveReceivedMessages(List<Message> messages)
+        {
+            foreach (var message in messages)
+            {
+                message.Status = MessageStatus.Received;
+            }
+
+            await Context.SaveChangesAsync();
+        }
     }
 }

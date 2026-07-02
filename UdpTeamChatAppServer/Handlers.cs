@@ -114,6 +114,29 @@ namespace UdpTeamChatAppServer
 
             Console.WriteLine($"=== User connected: Id={payload.UserId}, Port={clientEP.Port} ===");
             await _service.SetUserOnline(sender);
+
+            var messages = await _service.GetNotReceivedMessagesAsync(sender.Id);
+
+            foreach (var message in messages)
+            {
+                var responsePacket = Packet.Create(PacketType.IncomingMessage,
+                    new IncomingMessagePayload
+                    {
+                        SenderId = message.AuthorId,
+                        ChatId = message.ChatId,
+                        Text = message.Text,
+                        Time = message.Time
+                    });
+                var bytes = responsePacket.ToBytes();
+
+                await _udpServer.SendAsync(
+                    bytes,
+                    bytes.Length,
+                    clientEP);
+            }
+
+            await _service.SaveReceivedMessages(messages);
+
             Console.WriteLine($"===New user {sender.Id} added===");
         }
         public async Task HandleDisconnect(Packet packet)
