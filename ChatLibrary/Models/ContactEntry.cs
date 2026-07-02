@@ -1,0 +1,12 @@
+namespace ChatLibrary.Models
+{
+    public class ContactEntry
+    {
+        public int Id { get; set; }
+        public int OwnerId { get; set; }
+        public User? Owner { get; set; }
+        public int ContactUserId { get; set; }
+        public User? ContactUser { get; set; }
+        public bool IsBlacklisted { get; set; }
+    }
+}

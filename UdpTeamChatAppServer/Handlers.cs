@@ -35,8 +35,8 @@ namespace UdpTeamChatAppServer
             var user = new UserLoginData(payload.Username, payload.Password, payload.Email);
             try
             {
-                bool success = await _service.RegisterUserAsync(user);
-                if (!success)
+                var registerResult = await _service.RegisterUserAsync(user);
+                if (!registerResult.Success)
                 {
                     await Send(client, new AuthResponsePayload
                     {
@@ -49,7 +49,7 @@ namespace UdpTeamChatAppServer
                 {
                     Success = true,
                     Message = "Registration successful",
-                    UserId = user.Id,
+                    UserId = registerResult.UserId,
                     Username = user.Username
                 };
                 await Send(client, response);
@@ -84,7 +84,7 @@ namespace UdpTeamChatAppServer
             {
                 Success = true,
                 Message = "Log In successful",
-                UserId = loginData.Id,
+                UserId = loginData.UserId,
                 Username = loginData.Username
             };
             await Send(client, response);
@@ -173,6 +173,12 @@ namespace UdpTeamChatAppServer
             SendPrivateMessagePayload payload = packet.GetPayload<SendPrivateMessagePayload>();
             var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == payload.RecipientUserId);
 
+            if (await _service.IsUserBlacklistedAsync(payload.RecipientUserId, payload.SenderId))
+            {
+                Console.WriteLine($"[PRIVATE BLOCKED] User {payload.RecipientUserId} has blacklisted User {payload.SenderId}");
+                return;
+            }
+
             Chat chat = await _service.GetOrCreatePrivateChatAsync(payload.SenderId, payload.RecipientUserId);
             Console.WriteLine($"Target user found: {targetUser != null}, RecipientId: {payload.RecipientUserId}");
             Console.WriteLine($"Online users: {string.Join(", ", _onlineUsers.Select(u => u.Id))}");
@@ -245,6 +251,49 @@ namespace UdpTeamChatAppServer
                     await _udpServer.SendAsync(bytes, bytes.Length, userEP);
                 }
             }
+        }
+
+        public async Task HandleGetContacts(Packet packet, IPEndPoint clientEP)
+        {
+            var payload = packet.GetPayload<GetContactsPayload>();
+            var contacts = await _service.GetContactsAsync(payload.UserId);
+            var response = new ContactsResponsePayload
+            {
+                Contacts = contacts.Select(c => new ContactInfo
+                {
+                    UserId = c.ContactUserId,
+                    Username = c.ContactUser?.LoginData?.Username ?? $"User {c.ContactUserId}",
+                    IsBlacklisted = c.IsBlacklisted
+                }).ToList()
+            };
+
+            await SendPacket(clientEP, PacketType.ContactsResponse, response);
+        }
+
+        public async Task HandleContactAction(Packet packet, IPEndPoint clientEP)
+        {
+            var payload = packet.GetPayload<ContactActionPayload>();
+            (bool Success, string Message) result = packet.Type switch
+            {
+                PacketType.AddContact => await _service.AddContactAsync(payload.OwnerId, payload.ContactUserId),
+                PacketType.RemoveContact => await _service.RemoveContactAsync(payload.OwnerId, payload.ContactUserId),
+                PacketType.BlockContact => await _service.SetContactBlacklistAsync(payload.OwnerId, payload.ContactUserId, true),
+                PacketType.UnblockContact => await _service.SetContactBlacklistAsync(payload.OwnerId, payload.ContactUserId, false),
+                _ => (false, "Unsupported contact action")
+            };
+
+            await SendPacket(clientEP, PacketType.ContactActionResponse, new ContactActionResponsePayload
+            {
+                Success = result.Success,
+                Message = result.Message
+            });
+        }
+
+        private async Task SendPacket<T>(IPEndPoint to, PacketType type, T data)
+        {
+            var packet = Packet.Create(type, data);
+            var bytes = packet.ToBytes();
+            await _udpServer.SendAsync(bytes, bytes.Length, to);
         }
     }
 }

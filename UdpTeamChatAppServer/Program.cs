@@ -55,6 +55,15 @@ try
                 case PacketType.CreateChat:
                     await handlers.HandleCreateChat(packet, remoteEP);
                     break;
+                case PacketType.GetContacts:
+                    await handlers.HandleGetContacts(packet, remoteEP);
+                    break;
+                case PacketType.AddContact:
+                case PacketType.RemoveContact:
+                case PacketType.BlockContact:
+                case PacketType.UnblockContact:
+                    await handlers.HandleContactAction(packet, remoteEP);
+                    break;
                 default:
                     Console.WriteLine("Unknown packet type received");
                     break;
