@@ -23,10 +23,10 @@ namespace ChatLibrary.Data
             await Context.SaveChangesAsync();
         }
 
-        public async Task<(bool Success, int UserId)> RegisterUserAsync(UserLoginData user)
+        public async Task<bool> RegisterUserAsync(UserLoginData user)
         {
             bool exists = await Context.UserLoginDataPoints.AnyAsync(u => u.Username == user.Username || u.Email == user.Email);
-            if (exists) return (false, 0);
+            if (exists) return false;
             var _user = new User
             {
                 IPAddress = "0",
@@ -43,7 +43,7 @@ namespace ChatLibrary.Data
             await Context.SaveChangesAsync();
 
 
-            return (true, _user.Id);
+            return true;
         }
 
         public async Task<UserLoginData?> GetUserLoginAsync(string username, string password)
@@ -94,86 +94,6 @@ namespace ChatLibrary.Data
             await Context.Chats.AddAsync(chat);
             await Context.SaveChangesAsync();
             return chat;
-        }
-
-        public async Task<List<ContactEntry>> GetContactsAsync(int ownerId)
-        {
-            return await Context.ContactEntries
-                .Include(c => c.ContactUser)
-                .ThenInclude(u => u.LoginData)
-                .Where(c => c.OwnerId == ownerId)
-                .OrderBy(c => c.ContactUserId)
-                .ToListAsync();
-        }
-
-        public async Task<(bool Success, string Message)> AddContactAsync(int ownerId, int contactUserId)
-        {
-            if (ownerId == contactUserId)
-                return (false, "You cannot add yourself as a contact");
-
-            bool ownerExists = await Context.Users.AnyAsync(u => u.Id == ownerId);
-            bool contactExists = await Context.Users.AnyAsync(u => u.Id == contactUserId);
-            if (!ownerExists || !contactExists)
-                return (false, "User not found");
-
-            bool exists = await Context.ContactEntries.AnyAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId);
-            if (exists)
-                return (false, "Contact already exists");
-
-            await Context.ContactEntries.AddAsync(new ContactEntry
-            {
-                OwnerId = ownerId,
-                ContactUserId = contactUserId,
-                IsBlacklisted = false
-            });
-            await Context.SaveChangesAsync();
-            return (true, "Contact added");
-        }
-
-        public async Task<(bool Success, string Message)> RemoveContactAsync(int ownerId, int contactUserId)
-        {
-            ContactEntry? contact = await Context.ContactEntries
-                .FirstOrDefaultAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId);
-            if (contact == null)
-                return (false, "Contact not found");
-
-            Context.ContactEntries.Remove(contact);
-            await Context.SaveChangesAsync();
-            return (true, "Contact removed");
-        }
-
-        public async Task<(bool Success, string Message)> SetContactBlacklistAsync(int ownerId, int contactUserId, bool isBlacklisted)
-        {
-            if (ownerId == contactUserId)
-                return (false, "You cannot blacklist yourself");
-
-            bool ownerExists = await Context.Users.AnyAsync(u => u.Id == ownerId);
-            bool contactExists = await Context.Users.AnyAsync(u => u.Id == contactUserId);
-            if (!ownerExists || !contactExists)
-                return (false, "User not found");
-
-            ContactEntry? contact = await Context.ContactEntries
-                .FirstOrDefaultAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId);
-
-            if (contact == null)
-            {
-                contact = new ContactEntry
-                {
-                    OwnerId = ownerId,
-                    ContactUserId = contactUserId
-                };
-                await Context.ContactEntries.AddAsync(contact);
-            }
-
-            contact.IsBlacklisted = isBlacklisted;
-            await Context.SaveChangesAsync();
-            return (true, isBlacklisted ? "Contact blacklisted" : "Contact unblocked");
-        }
-
-        public async Task<bool> IsUserBlacklistedAsync(int ownerId, int contactUserId)
-        {
-            return await Context.ContactEntries
-                .AnyAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId && c.IsBlacklisted);
         }
 
         public async Task<List<User>?> GetOnlineUsers()

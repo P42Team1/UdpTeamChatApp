@@ -41,37 +41,6 @@ namespace ChatLibrary.Models
 
     }
 
-    // Contacts / blacklist ------
-
-    public class GetContactsPayload
-    {
-        public int UserId { get; set; }
-    }
-
-    public class ContactInfo
-    {
-        public int UserId { get; set; }
-        public string Username { get; set; } = "";
-        public bool IsBlacklisted { get; set; }
-    }
-
-    public class ContactsResponsePayload
-    {
-        public List<ContactInfo> Contacts { get; set; } = new();
-    }
-
-    public class ContactActionPayload
-    {
-        public int OwnerId { get; set; }
-        public int ContactUserId { get; set; }
-    }
-
-    public class ContactActionResponsePayload
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; } = "";
-    }
-
     // ---------------
 
     public class RegisterPayload
@@ -193,14 +162,6 @@ namespace ChatLibrary.Models
 
         CreateChat,
         CreateChatResponse,
-
-        GetContacts,
-        ContactsResponse,
-        AddContact,
-        RemoveContact,
-        BlockContact,
-        UnblockContact,
-        ContactActionResponse,
     }
 
 

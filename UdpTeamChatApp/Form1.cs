@@ -17,22 +17,11 @@ namespace UdpTeamChatApp
         public int activeChat = 1;
         public Dictionary<int, string> chats = new Dictionary<int, string>();
         int currentUserId;
-        private GroupBox groupBoxContacts = null!;
-        private ListBox listBoxContacts = null!;
-        private TextBox textBoxContactUserId = null!;
-        private Button buttonAddContact = null!;
-        private Button buttonRemoveContact = null!;
-        private Button buttonBlockContact = null!;
-        private Button buttonUnblockContact = null!;
-        private Button buttonUseContact = null!;
-
         public Form1()
         {
             InitializeComponent();
-            InitializeContactControls();
             textBox1.Text = "127.0.0.1";
             textBox2.Text = "10000";
-            label5.Text = "User Id";
             button1.Enabled = false;
             button4.Enabled = false;
             comboBox1.SelectedIndex = 0;
@@ -298,7 +287,6 @@ namespace UdpTeamChatApp
                 panelLogin.Visible = false;
                 panelChat.Visible = true;
                 await LoadChatsAsync();
-                await LoadContactsAsync();
             }
             else
             {
@@ -352,185 +340,6 @@ namespace UdpTeamChatApp
                     MessageBox.Show($"Chat '{form.ChatName}' created");
                     await LoadChatsAsync();
                 }
-            }
-        }
-
-        private void InitializeContactControls()
-        {
-            groupBoxContacts = new GroupBox
-            {
-                Name = "groupBoxContacts",
-                Text = "Contacts / blacklist",
-                Location = new Point(833, 785),
-                Size = new Size(769, 160)
-            };
-
-            listBoxContacts = new ListBox
-            {
-                Name = "listBoxContacts",
-                Location = new Point(12, 30),
-                Size = new Size(280, 110)
-            };
-
-            textBoxContactUserId = new TextBox
-            {
-                Name = "textBoxContactUserId",
-                Location = new Point(315, 30),
-                Size = new Size(120, 27)
-            };
-
-            Label labelContactUserId = new Label
-            {
-                AutoSize = true,
-                Text = "User Id",
-                Location = new Point(315, 7)
-            };
-
-            buttonAddContact = new Button
-            {
-                Name = "buttonAddContact",
-                Text = "Add",
-                Location = new Point(450, 28),
-                Size = new Size(75, 31)
-            };
-            buttonAddContact.Click += async (_, _) => await RunContactAction(PacketType.AddContact);
-
-            buttonRemoveContact = new Button
-            {
-                Name = "buttonRemoveContact",
-                Text = "Remove",
-                Location = new Point(540, 28),
-                Size = new Size(85, 31)
-            };
-            buttonRemoveContact.Click += async (_, _) => await RunContactAction(PacketType.RemoveContact, true);
-
-            buttonBlockContact = new Button
-            {
-                Name = "buttonBlockContact",
-                Text = "Block",
-                Location = new Point(450, 70),
-                Size = new Size(75, 31)
-            };
-            buttonBlockContact.Click += async (_, _) => await RunContactAction(PacketType.BlockContact, true);
-
-            buttonUnblockContact = new Button
-            {
-                Name = "buttonUnblockContact",
-                Text = "Unblock",
-                Location = new Point(540, 70),
-                Size = new Size(85, 31)
-            };
-            buttonUnblockContact.Click += async (_, _) => await RunContactAction(PacketType.UnblockContact, true);
-
-            buttonUseContact = new Button
-            {
-                Name = "buttonUseContact",
-                Text = "Use",
-                Location = new Point(640, 49),
-                Size = new Size(90, 31)
-            };
-            buttonUseContact.Click += (_, _) =>
-            {
-                if (GetSelectedContactUserId(out int userId))
-                    textBox6.Text = userId.ToString();
-            };
-
-            groupBoxContacts.Controls.Add(labelContactUserId);
-            groupBoxContacts.Controls.Add(listBoxContacts);
-            groupBoxContacts.Controls.Add(textBoxContactUserId);
-            groupBoxContacts.Controls.Add(buttonAddContact);
-            groupBoxContacts.Controls.Add(buttonRemoveContact);
-            groupBoxContacts.Controls.Add(buttonBlockContact);
-            groupBoxContacts.Controls.Add(buttonUnblockContact);
-            groupBoxContacts.Controls.Add(buttonUseContact);
-            panelChat.Controls.Add(groupBoxContacts);
-        }
-
-        private async Task LoadContactsAsync()
-        {
-            if (currentUserId == 0)
-                return;
-
-            var packet = Packet.Create(PacketType.GetContacts, new GetContactsPayload { UserId = currentUserId });
-            var bytes = packet.ToBytes();
-            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
-
-            var result = await _udpClient.ReceiveAsync();
-            var response = Packet.FromBytes(result.Buffer);
-            var data = response.GetPayload<ContactsResponsePayload>();
-            if (data == null)
-                return;
-
-            listBoxContacts.Items.Clear();
-            foreach (ContactInfo contact in data.Contacts)
-            {
-                listBoxContacts.Items.Add(new ContactListItem(contact));
-            }
-        }
-
-        private async Task RunContactAction(PacketType action, bool allowSelection = false)
-        {
-            if (!TryGetContactActionUserId(allowSelection, out int contactUserId))
-                return;
-
-            var packet = Packet.Create(action, new ContactActionPayload
-            {
-                OwnerId = currentUserId,
-                ContactUserId = contactUserId
-            });
-            var bytes = packet.ToBytes();
-            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
-
-            var result = await _udpClient.ReceiveAsync();
-            var response = Packet.FromBytes(result.Buffer);
-            var data = response.GetPayload<ContactActionResponsePayload>();
-            if (data == null)
-                return;
-
-            MessageBox.Show(data.Message);
-            if (data.Success)
-                await LoadContactsAsync();
-        }
-
-        private bool TryGetContactActionUserId(bool allowSelection, out int userId)
-        {
-            if (allowSelection && GetSelectedContactUserId(out userId))
-                return true;
-
-            if (int.TryParse(textBoxContactUserId.Text, out userId))
-                return true;
-
-            MessageBox.Show("Enter or select a user id.");
-            return false;
-        }
-
-        private bool GetSelectedContactUserId(out int userId)
-        {
-            if (listBoxContacts.SelectedItem is ContactListItem contact)
-            {
-                userId = contact.UserId;
-                return true;
-            }
-
-            userId = 0;
-            return false;
-        }
-
-        private class ContactListItem
-        {
-            public int UserId { get; }
-            private readonly string _displayText;
-
-            public ContactListItem(ContactInfo contact)
-            {
-                UserId = contact.UserId;
-                string status = contact.IsBlacklisted ? "blocked" : "contact";
-                _displayText = $"{contact.Username} (Id {contact.UserId}) - {status}";
-            }
-
-            public override string ToString()
-            {
-                return _displayText;
             }
         }
     }
