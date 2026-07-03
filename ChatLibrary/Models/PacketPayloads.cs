@@ -76,7 +76,7 @@ namespace ChatLibrary.Models
     public class SendPrivateMessagePayload
     {
         public int SenderId { get; set; }
-        public int RecipientUserId { get; set; }
+        public string RecipientUserName { get; set; }
         public string Text { get; set; }
     }
     public class SendGroupMessagePayload

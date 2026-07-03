@@ -150,5 +150,19 @@ namespace ChatLibrary.Data
                 .ToListAsync();
         }
 
+        public async Task<User> GetUserIdByUsername(string username)
+        {
+            var user = await Context.Users
+                .Include(u => u.LoginData)
+                .FirstOrDefaultAsync(u => u.LoginData != null && u.LoginData.Username == username);
+            return user;
+        }
+        public async Task<User> GetUsernameById(int userId)
+        {
+            var user = await Context.Users
+                .Include(u => u.LoginData)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            return user;
+        }
     }
 }

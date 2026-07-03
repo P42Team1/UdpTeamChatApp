@@ -199,18 +199,24 @@ namespace UdpTeamChatAppServer
 
                 }
             }
-            Console.WriteLine($"[GENERAL CHAT_{payload.ChatId}] from User {packet.UserId}");
+            Console.WriteLine($"[GENERAL CHAT_{payload.ChatId}] from User {payload.SenderId}");
             Console.WriteLine($"Sent to {_onlineUsers.Count - 1} users");
         }
         public async Task HandlePrivateMessage(Packet packet)
         {
             SendPrivateMessagePayload payload = packet.GetPayload<SendPrivateMessagePayload>();
-            var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == payload.RecipientUserId);
+            var recUser = await _service.GetUserIdByUsername(payload.RecipientUserName);
+            if (recUser == null)
+            {
+                Console.WriteLine($"Recipient username '{payload.RecipientUserName}' not found.");
+                return;
+            }
+            var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == recUser.Id);
 
-            Chat chat = await _service.GetOrCreatePrivateChatAsync(payload.SenderId, payload.RecipientUserId);
-            Console.WriteLine($"Target user found: {targetUser != null}, RecipientId: {payload.RecipientUserId}");
+            Chat chat = await _service.GetOrCreatePrivateChatAsync(payload.SenderId, recUser.Id);
+            Console.WriteLine($"Target user found: {targetUser != null}, RecipientId: {recUser.Id}");
             Console.WriteLine($"Online users: {string.Join(", ", _onlineUsers.Select(u => u.Id))}");
-            Console.WriteLine($"[PRIVATE] From User {payload.SenderId} to User {payload.RecipientUserId}");
+            Console.WriteLine($"[PRIVATE] From User {payload.SenderId} to User {recUser.Id}");
 
             
                 var message = new Message

@@ -6,20 +6,23 @@ using Newtonsoft.Json;
 using ChatLibrary.Models;
 using Message = ChatLibrary.Models.Message;
 using System.Threading.Tasks;
+using ChatLibrary.Data;
 
 namespace UdpTeamChatApp
 {
     public partial class Form1 : Form
     {
-
+        private Service _service;
         private UdpClient client;
         public int localPort;
         public int activeChat = 1;
         public Dictionary<int, string> chats = new Dictionary<int, string>();
         int currentUserId;
-        public Form1()
+        string currentUserName;
+        public Form1(Service service)
         {
             InitializeComponent();
+            _service = service;
             textBox1.Text = "127.0.0.1";
             textBox2.Text = "10000";
             button1.Enabled = false;
@@ -33,7 +36,7 @@ namespace UdpTeamChatApp
         UdpClient _udpClient = new UdpClient();
         IPEndPoint serverEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 10000);
 
-        private void StartListening()
+        private async void StartListening()
         {
             IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
             while (true)
@@ -46,9 +49,10 @@ namespace UdpTeamChatApp
                     if (packet.Type == PacketType.IncomingMessage || packet.Type == PacketType.IncomingPrivateMessage)
                     {
                         var incomingMsg = packet.GetPayload<IncomingMessagePayload>();
+                        var SenderName = await _service.GetUsernameById(incomingMsg.SenderId);
                         if (packet.Type == PacketType.IncomingMessage)
                         {
-                            displayTemplate = $"[GENERAL CHAT_{incomingMsg.ChatId}] User {incomingMsg.SenderId}: {incomingMsg.Text}\r\n";
+                            displayTemplate = $"[GENERAL CHAT_{incomingMsg.ChatId}] User {currentUserName}: {incomingMsg.Text}\r\n";
 
                             textBox5.BeginInvoke(new Action(() =>
                             {
@@ -67,7 +71,7 @@ namespace UdpTeamChatApp
                         }
                         else if (packet.Type == PacketType.IncomingPrivateMessage)
                         {
-                            displayTemplate = $"[PRIVATE from User {incomingMsg.SenderId}]: {incomingMsg.Text}";
+                            displayTemplate = $"[PRIVATE from User {SenderName.Username}]: {incomingMsg.Text}";
                             TextUpdate(textBox8, displayTemplate);
                         }
                     }
@@ -120,7 +124,7 @@ namespace UdpTeamChatApp
 
         private async void button4_Click(object sender, EventArgs e)
         {
-            if (!int.TryParse(textBox6.Text, out int targetId))
+            if (textBox6.Text == String.Empty)
             {
                 MessageBox.Show("Enter user's Id!");
                 return;
@@ -128,12 +132,12 @@ namespace UdpTeamChatApp
             var packet = Packet.Create(PacketType.SendPrivateMessage, new SendPrivateMessagePayload
             {
                 SenderId = currentUserId,
-                RecipientUserId = targetId,
+                RecipientUserName = textBox6.Text,
                 Text = textBox7.Text
             });
             var bytes = packet.ToBytes();
             await client.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
-            TextUpdate(textBox8, $"[PRIVATE to User {targetId}]: {textBox7.Text}");
+            TextUpdate(textBox8, $"[PRIVATE to User {textBox6.Text}]: {textBox7.Text}");
             textBox7.Clear();
         }
 
@@ -283,6 +287,7 @@ namespace UdpTeamChatApp
             if (data.Success)
             {
                 currentUserId = data.UserId;
+                currentUserName = data.Username;
                 MessageBox.Show(data.Message);
                 panelLogin.Visible = false;
                 panelChat.Visible = true;
