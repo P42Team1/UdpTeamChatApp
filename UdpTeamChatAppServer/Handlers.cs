@@ -212,8 +212,7 @@ namespace UdpTeamChatAppServer
             Console.WriteLine($"Online users: {string.Join(", ", _onlineUsers.Select(u => u.Id))}");
             Console.WriteLine($"[PRIVATE] From User {payload.SenderId} to User {payload.RecipientUserId}");
 
-            if (targetUser != null)
-            {
+            
                 var message = new Message
                 {
                     AuthorId = payload.SenderId,
@@ -240,7 +239,7 @@ namespace UdpTeamChatAppServer
                     await _udpServer.SendAsync(bytes, bytes.Length, targetUserEP);
                     Console.WriteLine($"Forwarded to User {targetUser.Id} on port {targetUserPort}");
                 }
-            }
+            
         }
         private async Task Send<T>(IPEndPoint to, T data)
         {
