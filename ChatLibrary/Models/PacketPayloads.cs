@@ -25,12 +25,14 @@ namespace ChatLibrary.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public bool IsGroup { get; set; }
     }
 
     public class CreateChatPayload
     {
         public string Name { get; set; }
         public int CreatorId { get; set; }
+        public List<string> MemberUsernames { get; set; } = new();
     }
 
     public class CreateChatResponsePayload
@@ -138,6 +140,49 @@ namespace ChatLibrary.Models
         public int UserId { get; set; } 
         public string Username { get; set; }
     }
+    public class GetContactsPayload
+    {
+        public int UserId { get; set; }
+    }
+
+    public class ContactInfo
+    {
+        public int UserId { get; set; }
+        public string Username { get; set; } = "";
+        public bool IsBlacklisted { get; set; }
+    }
+
+    public class ContactsResponsePayload
+    {
+        public List<ContactInfo> Contacts { get; set; } = new();
+    }
+
+    public class ContactActionPayload
+    {
+        public int OwnerId { get; set; }
+        public string ContactUsername { get; set; } = "";
+    }
+
+    public class ContactActionResponsePayload
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = "";
+    }
+    public class HistoryMessage
+    {
+        public int SenderId { get; set; }
+        public int ChatId { get; set; }
+        public string ChatName { get; set; }
+        public bool IsGroup { get; set; }
+        public int OtherUserId { get; set; }
+        public string Text { get; set; }
+        public DateTime Time { get; set; }
+    }
+
+    public class ChatHistoryResponsePayload
+    {
+        public List<HistoryMessage> Messages { get; set; } = new();
+    }
     public enum PacketType
     {
         Register,
@@ -159,9 +204,18 @@ namespace ChatLibrary.Models
 
         GetChats,
         ChatsResponse,
+        ChatHistoryResponse,
 
         CreateChat,
         CreateChatResponse,
+
+        GetContacts,
+        ContactsResponse,
+        AddContact,
+        RemoveContact,
+        BlockContact,
+        UnblockContact,
+        ContactActionResponse,
     }
 
 

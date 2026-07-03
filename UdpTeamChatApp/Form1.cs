@@ -17,8 +17,12 @@ namespace UdpTeamChatApp
         public int localPort;
         public int activeChat = 1;
         public Dictionary<int, string> chats = new Dictionary<int, string>();
+        public List<ContactInfo> contactsList = new List<ContactInfo>();
+        public Dictionary<int, string> privateChats = new Dictionary<int, string>();
+        int activeContactId = 0;
         int currentUserId;
         string currentUserName;
+        public List<ChatInfo> chatsList = new List<ChatInfo>();
         public Form1(Service service)
         {
             InitializeComponent();
@@ -71,8 +75,18 @@ namespace UdpTeamChatApp
                         }
                         else if (packet.Type == PacketType.IncomingPrivateMessage)
                         {
-                            displayTemplate = $"[PRIVATE from User {SenderName.Username}]: {incomingMsg.Text}";
-                            TextUpdate(textBox8, displayTemplate);
+                            var privMsg = packet.GetPayload<IncomingPrivateMessagePayload>();
+                            displayTemplate = $"[PRIVATE from User {SenderName.Username}]: {privMsg.Text}\r\n";
+
+                            textBox8.BeginInvoke(new Action(() =>
+                            {
+                                if (!privateChats.ContainsKey(privMsg.SenderId))
+                                    privateChats[privMsg.SenderId] = "";
+                                privateChats[privMsg.SenderId] += displayTemplate;
+
+                                if (privMsg.SenderId == activeContactId)
+                                    textBox8.AppendText(displayTemplate);
+                            }));
                         }
                     }
                     else if (packet.Type == PacketType.CreateChatResponse)
@@ -81,6 +95,42 @@ namespace UdpTeamChatApp
                         {
                             await LoadChatsAsync();
                         }));
+                    }
+                    else if (packet.Type == PacketType.ChatHistoryResponse)
+                    {
+                        var data = packet.GetPayload<ChatHistoryResponsePayload>();
+                        foreach (var msg in data.Messages)
+                        {
+                            string who = msg.SenderId == currentUserId ? "YOU" : $"User {msg.SenderId}";
+                            if (msg.IsGroup)
+                            {
+                                string line = $"[GENERAL CHAT_{msg.ChatId}] {who}: {msg.Text}\r\n";
+                                comboBox1.BeginInvoke(new Action(() =>
+                                {
+                                    if (!chats.ContainsKey(msg.ChatId)) chats[msg.ChatId] = "";
+                                    chats[msg.ChatId] += line;
+                                    var activeInfo = chatsList.ElementAtOrDefault(comboBox1.SelectedIndex);
+                                    if (activeInfo != null && activeInfo.Id == msg.ChatId)
+                                    {
+                                        textBox5.Text = chats[msg.ChatId];
+                                    }
+                                }));
+                            }
+                            else
+                            {
+                                int contactId = msg.SenderId == currentUserId ? msg.OtherUserId : msg.SenderId;
+                                string line = $"[PRIVATE, {who}]: {msg.Text}\r\n";
+
+                                textBox8.BeginInvoke(new Action(() =>
+                                {
+                                    if (!privateChats.ContainsKey(contactId)) privateChats[contactId] = "";
+                                    privateChats[contactId] += line;
+
+                                    if (contactId == activeContactId)
+                                        textBox8.AppendText(line);
+                                }));
+                            }
+                        }
                     }
                 }
                 catch (SocketException ex)
@@ -104,40 +154,54 @@ namespace UdpTeamChatApp
 
         private async void button1_Click(object sender, EventArgs e)
         {
+            var selected = chatsList.ElementAtOrDefault(comboBox1.SelectedIndex);
+            if (selected == null)
+            {
+                MessageBox.Show("¬ибер≥ть чат!");
+                return;
+            }
+
             var packet = Packet.Create(PacketType.SendGroupMessage, new SendGroupMessagePayload
             {
                 SenderId = currentUserId,
-                ChatId = comboBox1.SelectedIndex + 1,
+                ChatId = selected.Id,
                 Text = textBox4.Text
             });
             var bytes = packet.ToBytes();
             await client.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
-            string msg = $"[YOU to GENERAL CHAT_{activeChat}]: {textBox4.Text}\r\n";
-            if (!chats.ContainsKey(activeChat))
-            {
-                chats[activeChat] = "";
-            }
-            chats[activeChat] += msg;
+
+            string msg = $"[YOU to {selected.Name}]: {textBox4.Text}\r\n";
+            if (!chats.ContainsKey(selected.Id)) chats[selected.Id] = "";
+            chats[selected.Id] += msg;
             textBox5.AppendText(msg);
             textBox4.Clear();
         }
 
         private async void button4_Click(object sender, EventArgs e)
         {
-            if (textBox6.Text == String.Empty)
+            if (checkedListBoxContacts.SelectedIndex < 0)
             {
-                MessageBox.Show("Enter user's Id!");
+                MessageBox.Show("Select a contact!");
                 return;
             }
+            var selectedContact = contactsList[checkedListBoxContacts.SelectedIndex];
             var packet = Packet.Create(PacketType.SendPrivateMessage, new SendPrivateMessagePayload
             {
                 SenderId = currentUserId,
-                RecipientUserName = textBox6.Text,
+                RecipientUserName = selectedContact.Username,
                 Text = textBox7.Text
             });
             var bytes = packet.ToBytes();
             await client.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse(textBox1.Text), int.Parse(textBox2.Text)));
-            TextUpdate(textBox8, $"[PRIVATE to User {textBox6.Text}]: {textBox7.Text}");
+
+            string msg = $"[YOU to {selectedContact.Username}]: {textBox7.Text}\r\n";
+            if (!privateChats.ContainsKey(selectedContact.UserId))
+                privateChats[selectedContact.UserId] = "";
+            privateChats[selectedContact.UserId] += msg;
+
+            if (activeContactId == selectedContact.UserId)
+                textBox8.AppendText(msg);
+
             textBox7.Clear();
         }
 
@@ -224,12 +288,13 @@ namespace UdpTeamChatApp
 
         private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            activeChat = comboBox1.SelectedIndex + 1;
+            var selected = chatsList.ElementAtOrDefault(comboBox1.SelectedIndex);
+            if (selected == null) return;
+
+            activeChat = selected.Id;
             textBox5.Clear();
             if (!chats.ContainsKey(activeChat))
-            {
                 chats[activeChat] = "";
-            }
             textBox5.Text = chats[activeChat];
         }
 
@@ -292,6 +357,7 @@ namespace UdpTeamChatApp
                 panelLogin.Visible = false;
                 panelChat.Visible = true;
                 await LoadChatsAsync();
+                await LoadContactsAsync();
             }
             else
             {
@@ -316,10 +382,11 @@ namespace UdpTeamChatApp
             var response = Packet.FromBytes(result.Buffer);
             var data = response.GetPayload<ChatsResponsePayload>();
 
+            chatsList = data.Chats.Where(c => c.IsGroup).ToList();
             comboBox1.Items.Clear();
-            foreach (var item in data.Chats)
+            foreach (var chat in chatsList)
             {
-                comboBox1.Items.Add(item.Name);
+                comboBox1.Items.Add(chat.Name);
             }
             if (comboBox1.Items.Count > 0) comboBox1.SelectedIndex = 0;
         }
@@ -327,12 +394,14 @@ namespace UdpTeamChatApp
         private async void buttonCreateChat_Click(object sender, EventArgs e)
         {
             var form = new FormAddChat();
+            form.AvailableContacts = contactsList.Select(c => c.Username).ToList();
             if (form.ShowDialog() == DialogResult.OK)
             {
                 var packet = Packet.Create(PacketType.CreateChat, new CreateChatPayload
                 {
                     Name = form.ChatName,
-                    CreatorId = localPort,
+                    CreatorId = currentUserId,
+                    MemberUsernames = form.SelectedMembers
                 });
                 var bytes = packet.ToBytes();
                 await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
@@ -346,6 +415,109 @@ namespace UdpTeamChatApp
                     await LoadChatsAsync();
                 }
             }
+        }
+        public async Task LoadContactsAsync()
+        {
+            var payload = new GetContactsPayload { UserId = currentUserId };
+            var packet = Packet.Create(PacketType.GetContacts, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+
+            var result = await _udpClient.ReceiveAsync();
+            var response = Packet.FromBytes(result.Buffer);
+            var data = response.GetPayload<ContactsResponsePayload>();
+
+            contactsList = data.Contacts;
+            checkedListBoxContacts.Items.Clear();
+            foreach (var contact in contactsList)
+            {
+                string label = contact.Username + (contact.IsBlacklisted ? " [blocked]" : "");
+                checkedListBoxContacts.Items.Add(label);
+            }
+        }
+
+        private async void buttonAddContact_Click(object sender, EventArgs e)
+        {
+            if (textBoxContactUsername.Text == string.Empty)
+            {
+                MessageBox.Show("Enter username!");
+                return;
+            }
+
+            var payload = new ContactActionPayload
+            {
+                OwnerId = currentUserId,
+                ContactUsername = textBoxContactUsername.Text
+            };
+            var packet = Packet.Create(PacketType.AddContact, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+
+            var result = await _udpClient.ReceiveAsync();
+            var response = Packet.FromBytes(result.Buffer);
+            var data = response.GetPayload<ContactActionResponsePayload>();
+
+            MessageBox.Show(data.Message);
+            if (data.Success)
+            {
+                textBoxContactUsername.Clear();
+                await LoadContactsAsync();
+            }
+        }
+
+        private async void buttonRemoveContact_Click(object sender, EventArgs e)
+        {
+            if (checkedListBoxContacts.SelectedIndex < 0) return;
+            var selected = contactsList[checkedListBoxContacts.SelectedIndex];
+
+            var payload = new ContactActionPayload
+            {
+                OwnerId = currentUserId,
+                ContactUsername = selected.Username
+            };
+            var packet = Packet.Create(PacketType.RemoveContact, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+
+            var result = await _udpClient.ReceiveAsync();
+            var response = Packet.FromBytes(result.Buffer);
+            var data = response.GetPayload<ContactActionResponsePayload>();
+
+            MessageBox.Show(data.Message);
+            if (data.Success) await LoadContactsAsync();
+        }
+
+        private async void buttonToggleBlock_Click(object sender, EventArgs e)
+        {
+            if (checkedListBoxContacts.SelectedIndex < 0) return;
+            var selected = contactsList[checkedListBoxContacts.SelectedIndex];
+
+            var payload = new ContactActionPayload
+            {
+                OwnerId = currentUserId,
+                ContactUsername = selected.Username
+            };
+            var type = selected.IsBlacklisted ? PacketType.UnblockContact : PacketType.BlockContact;
+            var packet = Packet.Create(type, payload);
+            var bytes = packet.ToBytes();
+            await _udpClient.SendAsync(bytes, bytes.Length, serverEndPoint);
+
+            var result = await _udpClient.ReceiveAsync();
+            var response = Packet.FromBytes(result.Buffer);
+            var data = response.GetPayload<ContactActionResponsePayload>();
+
+            MessageBox.Show(data.Message);
+            if (data.Success) await LoadContactsAsync();
+        }
+
+        private void checkedListBoxContacts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (checkedListBoxContacts.SelectedIndex < 0) return;
+            var contact = contactsList[checkedListBoxContacts.SelectedIndex];
+            activeContactId = contact.UserId;
+
+            textBox8.Clear();
+            textBox8.Text = privateChats.TryGetValue(activeContactId, out var history) ? history : "";
         }
     }
 }

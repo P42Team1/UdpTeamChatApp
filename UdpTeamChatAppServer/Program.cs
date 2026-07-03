@@ -50,10 +50,20 @@ try
                     await handlers.HandleGroupMessage(packet);
                     break;
                 case PacketType.GetChats:
-                    await handlers.HandleGetChats(remoteEP);
+                    var payload = packet.GetPayload<GetChatsPayload>();
+                    await handlers.HandleGetChats(remoteEP, payload.UserId);
                     break;
                 case PacketType.CreateChat:
                     await handlers.HandleCreateChat(packet, remoteEP);
+                    break;
+                case PacketType.GetContacts:
+                    await handlers.HandleGetContacts(packet, remoteEP);
+                    break;
+                case PacketType.AddContact:
+                case PacketType.RemoveContact:
+                case PacketType.BlockContact:
+                case PacketType.UnblockContact:
+                    await handlers.HandleContactAction(packet, remoteEP);
                     break;
                 default:
                     Console.WriteLine("Unknown packet type received");
