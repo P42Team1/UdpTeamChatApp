@@ -94,6 +94,9 @@ namespace UdpTeamChatAppServer
         public async Task HandleConnect(Packet packet, IPEndPoint clientEP)
         {
             ConnectPayload payload = packet.GetPayload<ConnectPayload>();
+
+            var missedMessages = await _service.GetMissedMessagesAsync(payload.UserId);
+
             var sender = _onlineUsers.FirstOrDefault(user => user.Id == payload.UserId);
             if (sender is null)
             {
@@ -110,11 +113,42 @@ namespace UdpTeamChatAppServer
             {
                 sender.IPAddress = clientEP.Address.ToString();
                 sender.Port = clientEP.Port;
+                sender.Status = UserStatus.Online;
             }
 
             Console.WriteLine($"=== User connected: Id={payload.UserId}, Port={clientEP.Port} ===");
             await _service.SetUserOnline(sender);
             Console.WriteLine($"===New user {sender.Id} added===");
+
+            if (missedMessages != null && missedMessages.Any())
+            {
+                Console.WriteLine($"Sending {missedMessages.Count} missed messages to User {payload.UserId}...");
+                foreach (var msg in missedMessages)
+                {
+                    Packet pushPacket = msg.Chat != null && !msg.Chat.IsGroup
+                        ? Packet.Create(PacketType.IncomingPrivateMessage, new IncomingPrivateMessagePayload
+                        {
+                            SenderId = msg.AuthorId,
+                            RecepientId = payload.UserId,
+                            Text = msg.Text,
+                            Time = msg.Time
+                        })
+                        : Packet.Create(PacketType.IncomingMessage, new IncomingMessagePayload
+                        {
+                            SenderId = msg.AuthorId,
+                            ChatId = msg.ChatId,
+                            Text = msg.Text,
+                            Time = msg.Time
+                        });
+
+                    byte[] bytes = pushPacket.ToBytes();
+                    await _udpServer.SendAsync(bytes, bytes.Length, clientEP);
+                    msg.Status = MessageStatus.Received;
+                }
+
+                await _service.SaveDbChanges();
+            }
+
         }
         public async Task HandleDisconnect(Packet packet)
         {
@@ -184,8 +218,7 @@ namespace UdpTeamChatAppServer
             Console.WriteLine($"Online users: {string.Join(", ", _onlineUsers.Select(u => u.Id))}");
             Console.WriteLine($"[PRIVATE] From User {payload.SenderId} to User {recUser.Id}");
 
-            if (targetUser != null)
-            {
+            
                 var message = new Message
                 {
                     AuthorId = payload.SenderId,
@@ -195,20 +228,24 @@ namespace UdpTeamChatAppServer
                     Status = MessageStatus.NotReceived
                 };
                 await _service.AddObjects(message);
-                Packet pushPacket = Packet.Create(PacketType.IncomingPrivateMessage, new IncomingPrivateMessagePayload
+
+                if (targetUser != null)
                 {
-                    SenderId = payload.SenderId,
-                    RecepientId = recUser.Id,
-                    Text = payload.Text,
-                    Time = DateTime.Now,
-                });
-                byte[] bytes = pushPacket.ToBytes();
-                IPAddress targetUserIp = IPAddress.Parse(targetUser.IPAddress);
-                int targetUserPort = targetUser.Port;
-                IPEndPoint targetUserEP = new IPEndPoint(targetUserIp, targetUserPort);
-                await _udpServer.SendAsync(bytes, bytes.Length, targetUserEP);
-                Console.WriteLine($"Forwarded to User {targetUser.Id} on port {targetUserPort}");
-            }
+                    Packet pushPacket = Packet.Create(PacketType.IncomingPrivateMessage, new IncomingPrivateMessagePayload
+                    {
+                        SenderId = payload.SenderId,
+                        RecepientId = payload.RecipientUserId,
+                        Text = payload.Text,
+                        Time = DateTime.Now,
+                    });
+                    byte[] bytes = pushPacket.ToBytes();
+                    IPAddress targetUserIp = IPAddress.Parse(targetUser.IPAddress);
+                    int targetUserPort = targetUser.Port;
+                    IPEndPoint targetUserEP = new IPEndPoint(targetUserIp, targetUserPort);
+                    await _udpServer.SendAsync(bytes, bytes.Length, targetUserEP);
+                    Console.WriteLine($"Forwarded to User {targetUser.Id} on port {targetUserPort}");
+                }
+            
         }
         private async Task Send<T>(IPEndPoint to, T data)
         {

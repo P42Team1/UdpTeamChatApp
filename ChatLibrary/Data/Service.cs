@@ -132,6 +132,24 @@ namespace ChatLibrary.Data
             }
             await Context.SaveChangesAsync();
         }
+
+        public async Task<List<Message>> GetMissedMessagesAsync(int userId)
+        {
+            var user = await Context.Users
+                .Include(u => u.Chats)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return new List<Message>();
+
+            var userChatIds = user.Chats.Select(c => c.Id).ToList();
+
+            return await Context.Messages
+                .Include(m => m.Chat)
+                .Where(m => userChatIds.Contains(m.ChatId) && m.AuthorId != userId && m.Time > user.OfflineFromTime)
+                .OrderBy(m => m.Time)
+                .ToListAsync();
+        }
+
         public async Task<User> GetUserIdByUsername(string username)
         {
             var user = await Context.Users
