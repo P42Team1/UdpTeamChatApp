@@ -62,12 +62,14 @@ namespace ChatLibrary.Data
             return await Context.Chats.Include(c => c.Members).Where(c => c.Members.Contains(u)).ToListAsync();
         }
 
-        public async Task<Chat> CreateChatAsync(string name)
+        public async Task<Chat> CreateChatAsync(string name, List<int> memberIds)
         {
+            var members = await Context.Users.Where(u => memberIds.Contains(u.Id)).ToListAsync();
             var chat = new Chat
             {
                 Name = name,
                 IsGroup = true,
+                Members = members
             };
             await Context.Chats.AddAsync(chat);
             await Context.SaveChangesAsync();
@@ -132,5 +134,118 @@ namespace ChatLibrary.Data
             }
             await Context.SaveChangesAsync();
         }
+
+        public async Task<List<Message>> GetChatHistoryAsync(int userId)
+        {
+            var user = await Context.Users
+                .Include(u => u.Chats)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return new List<Message>();
+
+            var userChatIds = user.Chats.Select(c => c.Id).ToList();
+
+            return await Context.Messages
+                .Include(m => m.Chat)
+                    .ThenInclude(c => c.Members)
+                .Where(m => userChatIds.Contains(m.ChatId))
+                .OrderBy(m => m.Time)
+                .ToListAsync();
+        }
+
+        public async Task<User> GetUserIdByUsername(string username)
+        {
+            var user = await Context.Users
+                .Include(u => u.LoginData)
+                .FirstOrDefaultAsync(u => u.LoginData != null && u.LoginData.Username == username);
+            return user;
+        }
+        public async Task<User> GetUsernameById(int userId)
+        {
+            var user = await Context.Users
+                .Include(u => u.LoginData)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            return user;
+        }
+        public async Task<List<ContactEntry>> GetContactsAsync(int ownerId)
+        {
+            return await Context.ContactEntries
+                .Include(c => c.ContactUser)
+                .ThenInclude(u => u.LoginData)
+                .Where(c => c.OwnerId == ownerId)
+                .OrderBy(c => c.ContactUserId)
+                .ToListAsync();
+        }
+
+        public async Task<(bool Success, string Message)> AddContactAsync(int ownerId, int contactUserId)
+        {
+            if (ownerId == contactUserId)
+                return (false, "You cannot add yourself as a contact");
+
+            bool ownerExists = await Context.Users.AnyAsync(u => u.Id == ownerId);
+            bool contactExists = await Context.Users.AnyAsync(u => u.Id == contactUserId);
+            if (!ownerExists || !contactExists)
+                return (false, "User not found");
+
+            bool exists = await Context.ContactEntries.AnyAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId);
+            if (exists)
+                return (false, "Contact already exists");
+
+            await Context.ContactEntries.AddAsync(new ContactEntry
+            {
+                OwnerId = ownerId,
+                ContactUserId = contactUserId,
+                IsBlacklisted = false
+            });
+            await Context.SaveChangesAsync();
+            return (true, "Contact added");
+        }
+
+        public async Task<(bool Success, string Message)> RemoveContactAsync(int ownerId, int contactUserId)
+        {
+            ContactEntry? contact = await Context.ContactEntries
+                .FirstOrDefaultAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId);
+            if (contact == null)
+                return (false, "Contact not found");
+
+            Context.ContactEntries.Remove(contact);
+            await Context.SaveChangesAsync();
+            return (true, "Contact removed");
+        }
+
+        public async Task<(bool Success, string Message)> SetContactBlacklistAsync(int ownerId, int contactUserId, bool isBlacklisted)
+        {
+            if (ownerId == contactUserId)
+                return (false, "You cannot blacklist yourself");
+
+            bool ownerExists = await Context.Users.AnyAsync(u => u.Id == ownerId);
+            bool contactExists = await Context.Users.AnyAsync(u => u.Id == contactUserId);
+            if (!ownerExists || !contactExists)
+                return (false, "User not found");
+
+            ContactEntry? contact = await Context.ContactEntries
+                .FirstOrDefaultAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId);
+
+            if (contact == null)
+            {
+                contact = new ContactEntry
+                {
+                    OwnerId = ownerId,
+                    ContactUserId = contactUserId
+                };
+                await Context.ContactEntries.AddAsync(contact);
+            }
+
+            contact.IsBlacklisted = isBlacklisted;
+            await Context.SaveChangesAsync();
+            return (true, isBlacklisted ? "Contact blacklisted" : "Contact unblocked");
+        }
+
+        public async Task<bool> IsUserBlacklistedAsync(int ownerId, int contactUserId)
+        {
+            return await Context.ContactEntries
+                .AnyAsync(c => c.OwnerId == ownerId && c.ContactUserId == contactUserId && c.IsBlacklisted);
+        }
+
     }
 }

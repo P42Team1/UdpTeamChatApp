@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,20 @@ namespace ChatLibrary.Models
 {
     public class User
     {
+        private string? _username;
+        [NotMapped]
+        public string Username
+        {
+            get => _username ?? LoginData?.Username ?? string.Empty;
+            set {
+                if (LoginData?.Username != null)
+                {
+                    LoginData.Username = value;
+                }
+                else
+                    _username = value;
+            }
+        }
         public int Id { get; set; }
         public string IPAddress { get; set; }
         public int Port { get; set; }

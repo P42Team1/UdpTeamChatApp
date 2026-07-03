@@ -17,6 +17,18 @@ namespace UdpTeamChatApp
             InitializeComponent();
         }
         public string ChatName => textBox1.Text;
+        public List<string> AvailableContacts
+        {
+            set
+            {
+                checkedListBox1.Items.Clear();
+                if (value == null) return;
+                foreach (var name in value)
+                    checkedListBox1.Items.Add(name, false);
+            }
+        }
+        public List<string> SelectedMembers => checkedListBox1.CheckedItems.Cast<string>().ToList();
+
         private void button2_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrEmpty(ChatName))

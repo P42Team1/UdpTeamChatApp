@@ -56,7 +56,7 @@ namespace UdpTeamChatAppServer
 
                 Console.WriteLine($"Registered new user: {user.Username} with email: {user.Email}. Hashed password: {user.Password}");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
             }
@@ -70,7 +70,7 @@ namespace UdpTeamChatAppServer
 
             var loginData = await _service.GetUserLoginAsync(payload.Username, payload.Password);
 
-            if(loginData == null)
+            if (loginData == null)
             {
                 await Send(client, new AuthResponsePayload
                 {
@@ -94,6 +94,7 @@ namespace UdpTeamChatAppServer
         public async Task HandleConnect(Packet packet, IPEndPoint clientEP)
         {
             ConnectPayload payload = packet.GetPayload<ConnectPayload>();
+
             var sender = _onlineUsers.FirstOrDefault(user => user.Id == payload.UserId);
             if (sender is null)
             {
@@ -110,11 +111,29 @@ namespace UdpTeamChatAppServer
             {
                 sender.IPAddress = clientEP.Address.ToString();
                 sender.Port = clientEP.Port;
+                sender.Status = UserStatus.Online;
             }
 
-            Console.WriteLine($"=== User connected: Id={payload.UserId}, Port={clientEP.Port} ===");
             await _service.SetUserOnline(sender);
-            Console.WriteLine($"===New user {sender.Id} added===");
+            Console.WriteLine($"=== User connected: Id={payload.UserId}, Port={clientEP.Port} ===");
+
+            var history = await _service.GetChatHistoryAsync(payload.UserId);
+            var response = new ChatHistoryResponsePayload
+            {
+                Messages = history.Select(m => new HistoryMessage
+                {
+                    SenderId = m.AuthorId,
+                    ChatId = m.ChatId,
+                    ChatName = m.Chat?.Name ?? "",
+                    IsGroup = m.Chat?.IsGroup ?? false,
+                    OtherUserId = (m.Chat != null && !m.Chat.IsGroup)
+                        ? m.Chat.Members.FirstOrDefault(mem => mem.Id != payload.UserId)?.Id ?? 0
+                        : 0,
+                    Text = m.Text,
+                    Time = m.Time
+                }).ToList()
+            };
+            await SendPacket(clientEP, PacketType.ChatHistoryResponse, response);
         }
         public async Task HandleDisconnect(Packet packet)
         {
@@ -165,18 +184,27 @@ namespace UdpTeamChatAppServer
 
                 }
             }
-            Console.WriteLine($"[GENERAL CHAT_{payload.ChatId}] from User {packet.UserId}");
+            Console.WriteLine($"[GENERAL CHAT_{payload.ChatId}] from User {payload.SenderId}");
             Console.WriteLine($"Sent to {_onlineUsers.Count - 1} users");
         }
         public async Task HandlePrivateMessage(Packet packet)
         {
             SendPrivateMessagePayload payload = packet.GetPayload<SendPrivateMessagePayload>();
-            var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == payload.RecipientUserId);
+            var recUser = await _service.GetUserIdByUsername(payload.RecipientUserName);
+            if (recUser == null)
+            {
+                Console.WriteLine($"Recipient username '{payload.RecipientUserName}' not found.");
+                return;
+            }
 
-            Chat chat = await _service.GetOrCreatePrivateChatAsync(payload.SenderId, payload.RecipientUserId);
-            Console.WriteLine($"Target user found: {targetUser != null}, RecipientId: {payload.RecipientUserId}");
-            Console.WriteLine($"Online users: {string.Join(", ", _onlineUsers.Select(u => u.Id))}");
-            Console.WriteLine($"[PRIVATE] From User {payload.SenderId} to User {payload.RecipientUserId}");
+            if (await _service.IsUserBlacklistedAsync(recUser.Id, payload.SenderId))
+            {
+                Console.WriteLine($"[PRIVATE BLOCKED] User {recUser.Id} has blacklisted User {payload.SenderId}");
+                return;
+            }
+
+            var targetUser = _onlineUsers.FirstOrDefault(user => user.Id == recUser.Id);
+            Chat chat = await _service.GetOrCreatePrivateChatAsync(payload.SenderId, recUser.Id);
 
             if (targetUser != null)
             {
@@ -192,16 +220,14 @@ namespace UdpTeamChatAppServer
                 Packet pushPacket = Packet.Create(PacketType.IncomingPrivateMessage, new IncomingPrivateMessagePayload
                 {
                     SenderId = payload.SenderId,
-                    RecepientId = payload.RecipientUserId,
+                    RecepientId = recUser.Id,
                     Text = payload.Text,
                     Time = DateTime.Now,
                 });
                 byte[] bytes = pushPacket.ToBytes();
-                IPAddress targetUserIp = IPAddress.Parse(targetUser.IPAddress);
-                int targetUserPort = targetUser.Port;
-                IPEndPoint targetUserEP = new IPEndPoint(targetUserIp, targetUserPort);
+                IPEndPoint targetUserEP = new IPEndPoint(IPAddress.Parse(targetUser.IPAddress), targetUser.Port);
                 await _udpServer.SendAsync(bytes, bytes.Length, targetUserEP);
-                Console.WriteLine($"Forwarded to User {targetUser.Id} on port {targetUserPort}");
+                Console.WriteLine($"Forwarded to User {targetUser.Id} on port {targetUser.Port}");
             }
         }
         private async Task Send<T>(IPEndPoint to, T data)
@@ -210,13 +236,19 @@ namespace UdpTeamChatAppServer
             var bytes = packet.ToBytes();
             await _udpServer.SendAsync(bytes, bytes.Length, to);
         }
-
-        public async Task HandleGetChats(IPEndPoint client)
+        private async Task SendPacket<T>(IPEndPoint to, PacketType type, T data)
         {
-            var chats = await _service.GetAllChatsAsync();
+            var packet = Packet.Create(type, data);
+            var bytes = packet.ToBytes();
+            await _udpServer.SendAsync(bytes, bytes.Length, to);
+        }
+
+        public async Task HandleGetChats(IPEndPoint client, int userId)
+        {
+            var chats = await _service.GetAllChatsOfUser(new User { Id = userId});
             var response = new ChatsResponsePayload
             {
-                Chats = chats.Select(c => new ChatInfo { Id = c.Id, Name = c.Name }).ToList()
+                Chats = chats.Select(c => new ChatInfo { Id = c.Id, Name = c.Name, IsGroup = c.IsGroup }).ToList()
             };
             var packet = Packet.Create(PacketType.ChatsResponse, response);
             var bytes = packet.ToBytes();
@@ -226,7 +258,15 @@ namespace UdpTeamChatAppServer
         public async Task HandleCreateChat(Packet packet, IPEndPoint clientEP)
         {
             var payload = packet.GetPayload<CreateChatPayload>();
-            var chat = await _service.CreateChatAsync(payload.Name);
+            var memberIds = new List<int> { payload.CreatorId };
+
+            foreach (var username in payload.MemberUsernames)
+            {
+                var user = await _service.GetUserIdByUsername(username);
+                if (user != null) memberIds.Add(user.Id);
+            }
+
+            var chat = await _service.CreateChatAsync(payload.Name, memberIds.Distinct().ToList());
             var response = new CreateChatResponsePayload
             {
                 Success = true,
@@ -237,7 +277,7 @@ namespace UdpTeamChatAppServer
             var bytes = responsePacket.ToBytes();
             await _udpServer.SendAsync(bytes, bytes.Length, clientEP);
 
-            foreach(var user in _onlineUsers)
+            foreach (var user in _onlineUsers)
             {
                 if (user.Port != clientEP.Port)
                 {
@@ -246,5 +286,52 @@ namespace UdpTeamChatAppServer
                 }
             }
         }
+        public async Task HandleGetContacts(Packet packet, IPEndPoint clientEP)
+        {
+            var payload = packet.GetPayload<GetContactsPayload>();
+            var contacts = await _service.GetContactsAsync(payload.UserId);
+            var response = new ContactsResponsePayload
+            {
+                Contacts = contacts.Select(c => new ContactInfo
+                {
+                    UserId = c.ContactUserId,
+                    Username = c.ContactUser?.LoginData?.Username ?? $"User {c.ContactUserId}",
+                    IsBlacklisted = c.IsBlacklisted
+                }).ToList()
+            };
+
+            await SendPacket(clientEP, PacketType.ContactsResponse, response);
+        }
+
+        public async Task HandleContactAction(Packet packet, IPEndPoint clientEP)
+        {
+            var payload = packet.GetPayload<ContactActionPayload>();
+            var contactUser = await _service.GetUserIdByUsername(payload.ContactUsername);
+            if (contactUser == null)
+            {
+                await SendPacket(clientEP, PacketType.ContactActionResponse, new ContactActionResponsePayload
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+                return;
+            }
+
+            (bool Success, string Message) result = packet.Type switch
+            {
+                PacketType.AddContact => await _service.AddContactAsync(payload.OwnerId, contactUser.Id),
+                PacketType.RemoveContact => await _service.RemoveContactAsync(payload.OwnerId, contactUser.Id),
+                PacketType.BlockContact => await _service.SetContactBlacklistAsync(payload.OwnerId, contactUser.Id, true),
+                PacketType.UnblockContact => await _service.SetContactBlacklistAsync(payload.OwnerId, contactUser.Id, false),
+                _ => (false, "Unsupported contact action")
+            };
+
+            await SendPacket(clientEP, PacketType.ContactActionResponse, new ContactActionResponsePayload
+            {
+                Success = result.Success,
+                Message = result.Message
+            });
+        }
+
     }
 }
